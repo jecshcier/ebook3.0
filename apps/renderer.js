@@ -19,6 +19,9 @@ onload = () => {
         e.preventDefault();
         this.loadURL(e.url);
     });
+    webview.addEventListener('dom-ready', () => {
+        webview.openDevTools()
+    })
 }
 
 const downloadSucess = (event, message) => {

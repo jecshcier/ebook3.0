@@ -13,6 +13,7 @@
     <h4>Shayne C出品</h4>
     <button onclick="post()">post请求</button>
     <button onclick="get()">get请求</button>
+    <button onclick="addProcess()">新建教学过程</button>
     <button onclick="max()">最大化</button>
     <button onclick="min()">最小化</button>
     <button onclick="exitApp()">关闭</button>
@@ -53,6 +54,54 @@
         })
         app.once('httpPostCallback', function(event, mess) {
             alert('post请求成功\n' + mess)
+        })
+    }
+    // post请求接口
+    function addProcess() {
+        app.send('addProcess', {
+            info: {
+                'book_id': '测试',
+                'user_id': '测试',
+                'page_id': '测试',
+                'count': '测试',
+                'pos_x': '测试',
+                'pos_y': '测试'
+            },
+            data: [{
+                'file_id': '测试',
+                'detail_index': 0,
+                'file_name': '测试',
+                'ext_name': '测试',
+                'edit_name': '测试'
+            }, {
+                'file_id': '测试',
+                'detail_index': 0,
+                'file_name': '测试',
+                'ext_name': '测试',
+                'edit_name': '测试'
+            }, {
+                'file_id': '测试',
+                'detail_index': 0,
+                'file_name': '测试',
+                'ext_name': '测试',
+                'edit_name': '测试'
+            }, {
+                'file_id': '测试',
+                'detail_index': 0,
+                'file_name': '测试',
+                'ext_name': '测试',
+                'edit_name': '测试'
+            }, {
+                'file_id': '测试',
+                'detail_index': 0,
+                'file_name': '测试',
+                'ext_name': '测试',
+                'edit_name': '测试'
+            }],
+            callback: 'addProcessCallback'
+        })
+        app.once('addProcessCallback', function(event, mess) {
+            alert('新建教学过程请求成功\n' + mess)
         })
     }
 
