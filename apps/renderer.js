@@ -15,7 +15,7 @@ onload = () => {
         console.log('Guest page logged a message:', e.message)
     })
     // 此处是对弹出新窗口的拦截，本app目前只支持一个窗口
-    webview.addEventListener('new-window', (e)=> {
+    webview.addEventListener('new-window', (e) => {
         e.preventDefault();
         this.loadURL(e.url);
     });
@@ -23,12 +23,22 @@ onload = () => {
         // webview.openDevTools()
     })
     webview.addEventListener('keydown', (e) => {
-        if (e.keyCode === 123) {
-            if (webview.isDevToolsOpened()) {
-                webview.closeDevTools()
+        console.log(e)
+        if (process.platform !== 'darwin') {
+            if (e.keyCode === 123) {
+                if (webview.isDevToolsOpened()) {
+                    webview.closeDevTools()
+                } else {
+                    webview.openDevTools()
+                }
             }
-            else {
-                webview.openDevTools()
+        } else {
+            if (e.keyCode === 123) {
+                if (webview.isDevToolsOpened()) {
+                    webview.closeDevTools()
+                } else {
+                    webview.openDevTools()
+                }
             }
         }
     })

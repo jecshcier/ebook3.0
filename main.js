@@ -103,9 +103,9 @@ function registerShortcut() {
 
     // 开发者工具
 
-    globalShortcut.register('CommandOrControl+Shift+i', () => {
-        win.webContents.toggleDevTools()
-    })
+    // globalShortcut.register('CommandOrControl+Shift+i', () => {
+    //     win.webContents.toggleDevTools()
+    // })
 
     // 全屏
 
