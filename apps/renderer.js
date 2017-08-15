@@ -15,12 +15,22 @@ onload = () => {
         console.log('Guest page logged a message:', e.message)
     })
     // 此处是对弹出新窗口的拦截，本app目前只支持一个窗口
-    webview.addEventListener('new-window', function(e) {
+    webview.addEventListener('new-window', (e)=> {
         e.preventDefault();
         this.loadURL(e.url);
     });
     webview.addEventListener('dom-ready', () => {
-        webview.openDevTools()
+        // webview.openDevTools()
+    })
+    webview.addEventListener('keydown', (e) => {
+        if (e.keyCode === 123) {
+            if (webview.isDevToolsOpened()) {
+                webview.closeDevTools()
+            }
+            else {
+                webview.openDevTools()
+            }
+        }
     })
 }
 
