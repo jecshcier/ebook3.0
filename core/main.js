@@ -15,12 +15,8 @@ const path = require('path')
 const url = require('url')
 const ipclistener = require('./apps/ipclistener')
 const fs = require('fs')
-let config;
-if (fs.existsSync(path.resolve(__dirname, '../config.json'))) {
-    config = require('../config')
-} else {
-    config = require('./config')
-}
+const config = require(process.cwd() + '/../config');
+
 
 // 若需要用到httpServer，则创建httpServer
 
@@ -58,7 +54,7 @@ app.on('ready', () => {
         minHeight: config.minHeight,
         width: config.width,
         height: config.height,
-        title: 'cherry',
+        title: config.title,
         center: true,
         fullscreen:config.fullscreen,
         fullscreenable:config.fullscreenable
@@ -89,7 +85,7 @@ app.on('activate', () => {
             minHeight: config.minHeight,
             width: config.width,
             height: config.height,
-            title: 'cherry',
+            title: config.title,
             center: true,
             fullscreen:config.fullscreen,
             fullscreenable:config.fullscreenable

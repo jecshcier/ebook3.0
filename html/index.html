@@ -13,13 +13,11 @@
     <h4>Shayne C出品</h4>
     <button onclick="post()">post请求</button>
     <button onclick="get()">get请求</button>
-    <button onclick="addProcess()">新建教学过程</button>
     <button onclick="max()">最大化</button>
     <button onclick="min()">最小化</button>
     <button onclick="exitApp()">关闭</button>
     <button onclick="fullscreen()">全屏（F2）</button>
     <button onclick="developTools()">开发者工具（ctrl + shift + i）</button>
-    <input type="text" name="" value="">
     <button type="button" name="button" onclick="uploadFiles({
         'url':'http://pan.tes-sys.com/skydisk-ms/api/fileUpload.html',
         'd': '80C32BDE0C6EB8F1BE8C202B7DF95286',
@@ -46,7 +44,7 @@
     // post请求接口
     function post() {
         app.send('httpPost', {
-            url: 'login',
+            url: 'http://es.tes-sys.com/weare/login',
             data: {
                 username: 'chenshenhao',
                 password: 'chenshenhao'
@@ -57,59 +55,11 @@
             alert('post请求成功\n' + mess)
         })
     }
-    // post请求接口
-    function addProcess() {
-        app.send('addProcess', {
-            info: {
-                'book_id': '测试',
-                'user_id': '测试',
-                'page_id': '测试',
-                'count': '测试',
-                'pos_x': '测试',
-                'pos_y': '测试'
-            },
-            data: [{
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试'
-            }],
-            callback: 'addProcessCallback'
-        })
-        app.once('addProcessCallback', function(event, mess) {
-            alert('新建教学过程请求成功\n' + mess)
-        })
-    }
 
     // get请求接口
     function get() {
         app.send('httpGet', {
-            url: 'getWholeProjectTeam',
+            url: 'http://es.tes-sys.com/weare/getWholeProjectTeam',
             callback: 'httpGetCallback'
         })
         app.once('httpGetCallback', function(event, mess) {

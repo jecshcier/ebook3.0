@@ -8,19 +8,25 @@ const electron = require('electron')
 const shell = electron.shell
 const app = electron.ipcRenderer
 const BrowserWindow = electron.remote.BrowserWindow
+const fs = require('fs')
+const path = require('path')
+const config = require(process.cwd() + '/../config');
+
 
 onload = () => {
     let webview = document.getElementById('webview');
+    webview.src = config.staticUrl
     webview.addEventListener('console-message', (e) => {
         console.log('Guest page logged a message:', e.message)
     })
     // 此处是对弹出新窗口的拦截，本app目前只支持一个窗口
     webview.addEventListener('new-window', (e) => {
         e.preventDefault();
-        this.loadURL(e.url);
+        webview.loadURL(e.url);
     });
     webview.addEventListener('dom-ready', () => {
         // webview.openDevTools()
+        // webview.loadURL();
     })
     webview.addEventListener('keydown', (e) => {
         if (process.platform !== 'darwin') {

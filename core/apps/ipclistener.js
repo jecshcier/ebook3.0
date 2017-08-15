@@ -8,16 +8,28 @@
 const ipc = require('electron').ipcMain
 const app = require('electron').app
 const dialog = require('electron').dialog
-const config = require('../config')
+const config = require(process.cwd() + '/../config');
 const request = require('request')
 const fs = require('fs-extra')
 const path = require('path')
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('../userData/user.db');
-const uuid = require('uuid');
-const moment = require('moment')
-
-
+var sqlite3 = require('sqlite3').verbose();
+// var db = new sqlite3.Database('../userData/user.db');
+//
+// db.serialize(function() {
+//     var stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
+//     stmt.run({
+//         $id: 'test',
+//         $book_id: 'test',
+//         $user_id: 'test',
+//         $page_id: 'test',
+//         $count: 'test',
+//         $pos_x: 'test',
+//         $pos_y: 'test',
+//         $create_time: 'test',
+//         $update_time: 'test'
+//     });
+//     stmt.finalize();
+// });
 
 
 let uploadArr = {};
@@ -54,45 +66,6 @@ const appEvent = {
                 event.sender.send(data.callback, body);
             });
         })
-
-        // ipc.on('addProcess', function(event, data) {
-        //     let pId = uuid.v4();
-        //     let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-        //     db.serialize(function() {
-        //         let stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
-        //         stmt.run({
-        //             $id: pId,
-        //             $book_id: data.info.book_id,
-        //             $user_id: data.info.user_id,
-        //             $page_id: data.info.page_id,
-        //             $count: data.info.count,
-        //             $pos_x: data.info.pos_x,
-        //             $pos_y: data.info.pos_y,
-        //             $create_time: currentTime,
-        //             $update_time: currentTime
-        //         });
-        //         stmt.finalize();
-        //         for (var i = 0; i < data.data.length; i++) {
-        //
-        //             let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time,update_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time,$update_time)");
-        //             stmt2.run({
-        //                 $id:uuid.v4(),
-        //                 $file_id:data.data[i].file_id,
-        //                 $process_id:pId,
-        //                 $detail_index:data.data[i].file_id,
-        //                 $file_name:data.data[i].file_id,
-        //                 $ext_name:data.data[i].file_id,
-        //                 $convert_name:null,
-        //                 $edit_name:,
-        //                 $create_time:,
-        //                 $update_time:
-        //             });
-        //             stmt2.finalize();
-        //         }
-        //
-        //     });
-        //     event.sender.send(data.callback, 'ok');
-        // })
 
 
 
