@@ -14,6 +14,7 @@ const config = require(process.cwd() + '/../config');
 
 
 onload = () => {
+    document.title = config.title
     let webview = document.getElementById('webview');
     webview.src = config.staticUrl
     webview.addEventListener('console-message', (e) => {

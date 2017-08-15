@@ -1,5 +1,5 @@
 const config = {
-    "title":"cherry",
+    "title":"ebook3.0",
     "useServer":false,
     "localServerConfig":{
         "PORT":53480,
