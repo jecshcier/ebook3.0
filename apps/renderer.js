@@ -23,7 +23,6 @@ onload = () => {
         // webview.openDevTools()
     })
     webview.addEventListener('keydown', (e) => {
-        console.log(e)
         if (process.platform !== 'darwin') {
             if (e.keyCode === 123) {
                 if (webview.isDevToolsOpened()) {
