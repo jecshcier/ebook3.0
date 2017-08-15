@@ -130,11 +130,6 @@ const appEvent = {
 
         })
 
-        ipc.on('developTools', function(event) {
-            win.webContents.toggleDevTools()
-
-        })
-
         ipc.on('stopUpload', function(event, data) {
             // console.log(uploadArr[id]);
             if (uploadArr[data.id]) {
