@@ -8,10 +8,10 @@
 const ipc = require('electron').ipcMain
 const app = require('electron').app
 const dialog = require('electron').dialog
-const config = require(process.cwd() + '/../config');
+const path = require('path')
+const config = require(path.resolve(__dirname, process.cwd() + '/../config'));
 const request = require('request')
 const fs = require('fs-extra')
-const path = require('path')
 var sqlite3 = require('sqlite3').verbose();
 // var db = new sqlite3.Database('../userData/user.db');
 //

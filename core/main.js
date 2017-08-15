@@ -15,7 +15,7 @@ const path = require('path')
 const url = require('url')
 const ipclistener = require('./apps/ipclistener')
 const fs = require('fs')
-const config = require(process.cwd() + '/../config');
+const config = require(path.resolve(__dirname, process.cwd() + '/../config'));
 
 
 // 若需要用到httpServer，则创建httpServer
