@@ -10,7 +10,7 @@ const app = electron.ipcRenderer
 const BrowserWindow = electron.remote.BrowserWindow
 const fs = require('fs')
 const path = require('path')
-const config = require(path.resolve(__dirname, process.cwd() + '/../config'));
+const config = require(path.resolve(__dirname, process.cwd() + '/config'));
 
 
 onload = () => {
