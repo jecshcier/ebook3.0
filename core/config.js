@@ -11,7 +11,8 @@ const config = {
     "minHeight":600,
     "fullscreen":false,
     "fullscreenable":true,
-    "staticUrl":process.cwd() + "/../html/index.html"
+    "staticUrl":process.cwd() + "/../html/index.html",
+    "dbUrl":process.cwd() + "/../userData/user.db"
 }
 
 module.exports = config

@@ -13,6 +13,7 @@
     <h4>Shayne C出品</h4>
     <button onclick="post()">post请求</button>
     <button onclick="get()">get请求</button>
+    <button onclick="get2()">网盘get请求</button>
     <button onclick="addProcess()">新建教学过程</button>
     <button onclick="max()">最大化</button>
     <button onclick="min()">最小化</button>
@@ -114,6 +115,26 @@
         })
         app.once('httpGetCallback', function(event, mess) {
             alert('get请求成功\n' + mess)
+        })
+    }
+
+    function get2() {
+        app.send('httpGet_Query', {
+            url: 'http://192.168.109.229:8080//skydisk-ms/api/dirList.html',
+            data:{
+                'd': '3D916361504ED86D22CD23A3C720E867',
+                'url':'/',
+                'user_id':'9AE969E5687D99F7664C140AA4C73B48',
+                'order_name': 'name',
+                'order_type': 'asc',
+                'disk_type': 2,
+                'singlePage_fileNum': 10,
+                'no':1
+            },
+            callback: 'httpGetCallback'
+        })
+        app.once('httpGetCallback', function(event, mess) {
+            alert('get请求成功\n' + JSON.parse(mess))
         })
     }
     // 最小化接口

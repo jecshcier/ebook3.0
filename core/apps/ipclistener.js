@@ -12,25 +12,11 @@ const path = require('path')
 const config = require(path.resolve(__dirname, process.cwd() + '/config'));
 const request = require('request')
 const fs = require('fs-extra')
-var sqlite3 = require('sqlite3').verbose();
-// var db = new sqlite3.Database('../userData/user.db');
-//
-// db.serialize(function() {
-//     var stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
-//     stmt.run({
-//         $id: 'test',
-//         $book_id: 'test',
-//         $user_id: 'test',
-//         $page_id: 'test',
-//         $count: 'test',
-//         $pos_x: 'test',
-//         $pos_y: 'test',
-//         $create_time: 'test',
-//         $update_time: 'test'
-//     });
-//     stmt.finalize();
-// });
-
+const querystring = require('querystring');
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database('../userData/user.db');
+const uuid = require('uuid')
+const moment = require('moment');
 
 let uploadArr = {};
 let downloadArr = {};
@@ -38,36 +24,123 @@ let downloadNum = 0;
 
 const appEvent = {
     appListener: () => {
+
         // post请求
 
         ipc.on('httpPost', function(event, data) {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
             request.post({
                 url: data.url,
                 body: data.data,
                 json: true
             }, function optionalCallback(err, httpResponse, body) {
                 if (err) {
+                    info.message = err
+                    event.sender.send(data.callback, info);
                     return console.error('error:', err)
                 }
-                console.log(body)
-                event.sender.send(data.callback, body);
+                info.flag = true
+                info.message = "请求成功"
+                info.data = body
+                info = JSON.stringify(info)
+                event.sender.send(data.callback, info);
             });
         })
 
         // get请求
 
         ipc.on('httpGet', function(event, data) {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
             request.get({
                 url: data.url
             }, function optionalCallback(err, httpResponse, body) {
                 if (err) {
+                    info.message = err;
+                    event.sender.send(data.callback, info);
                     return console.error('error:', err)
                 }
-                event.sender.send(data.callback, body);
+                info.flag = true
+                info.message = "请求成功"
+                info.data = body
+                info = JSON.stringify(info)
+                event.sender.send(data.callback, info);
             });
         })
 
+        // get请求query方式
 
+        ipc.on('httpGet_Query', function(event, data) {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            var stringify = querystring.stringify(data.data);
+            request.get({
+                url: data.url + '?' + stringify
+            }, function optionalCallback(err, httpResponse, body) {
+                if (err) {
+                    info.message = err;
+                    event.sender.send(data.callback, info);
+                    return console.error('error:', err)
+                }
+                info.flag = true
+                info.message = "请求成功"
+                info.data = body
+                info = JSON.stringify(info)
+                event.sender.send(data.callback, info);
+            });
+        })
+
+        // 新建教学过程
+
+        ipc.on('addProcess', function(event, data) {
+            // console.log(uuid.v4())
+            // let pId = uuid.v4()
+            // let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+            // db.serialize(function() {
+            //     let stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
+            //     stmt.run({
+            //         $id: pId,
+            //         $book_id: data.info.book_id,
+            //         $user_id: data.info.user_id,
+            //         $page_id: data.info.page_id,
+            //         $count: data.info.count,
+            //         $pos_x: data.info.pos_x,
+            //         $pos_y: data.info.pos_y,
+            //         $create_time: currentTime,
+            //         $update_time: currentTime
+            //     });
+            //     stmt.finalize();
+            //     for (var i = 0; i < data.data.length; i) {
+            //         let resourceID = uuid.v4()；
+            //         let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time,update_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time,$update_time)");
+            //         stmt2.run({
+            //             $id: resourceID,
+            //             $file_id: data.data[i].file_id,
+            //             $process_id: pId,
+            //             $detail_index: data.data[i].detail_index,
+            //             $file_name: data.data[i].file_name,
+            //             $ext_name: data.data[i].ext_name,
+            //             $convert_name: null,
+            //             $edit_name: data.data[i].edit_name,
+            //             $create_time: currentTime,
+            //             $update_time:currentTime
+            //         });
+            //         stmt2.finalize();
+            //     }
+            //
+            // });
+            // event.sender.send(data.callback, 'ok');
+        })
 
     },
     windowListener: (win) => { // 程序最小化
