@@ -103,43 +103,42 @@ const appEvent = {
         // 新建教学过程
 
         ipc.on('addProcess', function(event, data) {
-            // console.log(uuid.v4())
-            // let pId = uuid.v4()
-            // let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-            // db.serialize(function() {
-            //     let stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
-            //     stmt.run({
-            //         $id: pId,
-            //         $book_id: data.info.book_id,
-            //         $user_id: data.info.user_id,
-            //         $page_id: data.info.page_id,
-            //         $count: data.info.count,
-            //         $pos_x: data.info.pos_x,
-            //         $pos_y: data.info.pos_y,
-            //         $create_time: currentTime,
-            //         $update_time: currentTime
-            //     });
-            //     stmt.finalize();
-            //     for (var i = 0; i < data.data.length; i) {
-            //         let resourceID = uuid.v4()；
-            //         let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time,update_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time,$update_time)");
-            //         stmt2.run({
-            //             $id: resourceID,
-            //             $file_id: data.data[i].file_id,
-            //             $process_id: pId,
-            //             $detail_index: data.data[i].detail_index,
-            //             $file_name: data.data[i].file_name,
-            //             $ext_name: data.data[i].ext_name,
-            //             $convert_name: null,
-            //             $edit_name: data.data[i].edit_name,
-            //             $create_time: currentTime,
-            //             $update_time:currentTime
-            //         });
-            //         stmt2.finalize();
-            //     }
-            //
-            // });
-            // event.sender.send(data.callback, 'ok');
+            let pId = uuid.v4().replace(/-/g,'')
+            let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+            db.serialize(function() {
+                let stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
+                stmt.run({
+                    $id: pId,
+                    $book_id: data.info.book_id,
+                    $user_id: data.info.user_id,
+                    $page_id: data.info.page_id,
+                    $count: data.info.count,
+                    $pos_x: data.info.pos_x,
+                    $pos_y: data.info.pos_y,
+                    $create_time: currentTime,
+                    $update_time: currentTime
+                });
+                stmt.finalize();
+                for (var i = 0; i < data.data.length; i++) {
+                    let resourceID = uuid.v4().replace(/-/g,'')
+                    let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time,update_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time,$update_time)");
+                    stmt2.run({
+                        $id: resourceID,
+                        $file_id: data.data[i].file_id,
+                        $process_id: pId,
+                        $detail_index: data.data[i].detail_index,
+                        $file_name: data.data[i].file_name,
+                        $ext_name: data.data[i].ext_name,
+                        $convert_name: null,
+                        $edit_name: data.data[i].edit_name,
+                        $create_time: currentTime,
+                        $update_time:currentTime
+                    });
+                    stmt2.finalize();
+                }
+
+            });
+            event.sender.send(data.callback, pId);
         })
 
     },
