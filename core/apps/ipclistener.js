@@ -14,7 +14,7 @@ const request = require('request')
 const fs = require('fs-extra')
 const querystring = require('querystring');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('../userData/user.db');
+const db = new sqlite3.Database(config.dbUrl);
 const uuid = require('uuid')
 const moment = require('moment');
 
