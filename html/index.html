@@ -23,17 +23,20 @@
     <input type="text" name="" value="">
     <button type="button" name="button" onclick="uploadFiles({
         'url':'http://pan.tes-sys.com/skydisk-ms/api/fileUpload.html',
-        'd': '80C32BDE0C6EB8F1BE8C202B7DF95286',
-        'dir_id': '4262EE8CB97BD59D044FD66DCC66C068',
-        'pub_flag': '2',
-        'user_id': 'B220F7C944ECD1DDD0BF063F4439E961',
-        'response_url': ''
+        'data':{
+            'd': 'AD37D6B10C4933A3F56455D983962E47',
+            'dir_id': '4262EE8CB97BD59D044FD66DCC66C068',
+            'pub_flag': '2',
+            'user_id': 'B220F7C944ECD1DDD0BF063F4439E961',
+            'response_url': ''
+        }
     })">上传文件测试</button>
     <button class="stopUpload" type="button" name="button">停止上传</button>
     <button class="stopDownload" type="button" name="button">停止下载</button>
     <a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C">自动下载测试</a>
     <a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264">自动下载测试2</a>
     <button class="download" type="button" url="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264" name="button">手动下载测试</button>
+    <button class="download" type="button" url="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C" name="button">手动下载测试</button>
 
     <p>下载进度：</p>
     <div class="progress" style="height:10px;background:#47f3fe;width:0px;margin-top:20px"><span></span></div>
@@ -121,15 +124,15 @@
     function get2() {
         app.send('httpGet_Query', {
             url: 'http://192.168.109.229:8080//skydisk-ms/api/dirList.html',
-            data:{
+            data: {
                 'd': '3D916361504ED86D22CD23A3C720E867',
-                'url':'/',
-                'user_id':'9AE969E5687D99F7664C140AA4C73B48',
+                'url': '/',
+                'user_id': '9AE969E5687D99F7664C140AA4C73B48',
                 'order_name': 'name',
                 'order_type': 'asc',
                 'disk_type': 2,
                 'singlePage_fileNum': 10,
-                'no':1
+                'no': 1
             },
             callback: 'httpGetCallback'
         })
@@ -183,7 +186,12 @@
     $(".download").click(function(event) {
         var url = $(this).attr('url');
         // 下载固定地址的文件接口
-        app.send('downloadFile', url)
+        var data = {
+            url:url,
+            dialog:false,
+            MD5Name:false
+        }
+        app.send('downloadFile', data)
     });
 
 

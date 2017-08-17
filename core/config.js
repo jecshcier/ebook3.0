@@ -12,7 +12,8 @@ const config = {
     "fullscreen":false,
     "fullscreenable":true,
     "staticUrl":process.cwd() + "/../html/index.html",
-    "dbUrl":process.cwd() + "/../userData/user.db"
+    "dbUrl":process.cwd() + "/../userData/user.db",
+    "downloadPath":process.cwd() + "/../userData"
 }
 
 module.exports = config
