@@ -255,6 +255,7 @@ const appEvent = {
                             writerStream.write(data);
                             fileSize += data.length;
                             let progress = fileSize / itemSize
+                            progress = (progress * 100).toFixed(2) + '%'
                             let progressObj = {
                                 'id': download_id,
                                 'progress': progress
@@ -276,14 +277,14 @@ const appEvent = {
                     'properties': ['openDirectory', 'createDirectory']
                 }, (dirPath) => {
                     if (dirPath) {
-                        startDownload(data.url, data.MD5Name, dirPath[0], win)
+                        startDownload(data.url, data.MD5Name, dirPath[0], win, event)
                     } else {
                         console.log("用户取消下载")
                     }
                     downloadNum++;
                 })
             } else {
-                startDownload(data.url, data.MD5Name, path.resolve(__dirname, config.downloadPath), win)
+                startDownload(data.url, data.MD5Name, path.resolve(__dirname, config.downloadPath), win, event)
                 downloadNum++;
             }
             // 设置下载路径
@@ -317,7 +318,7 @@ const appEvent = {
                         'id': upload_id,
                         'message': '开始上传'
                     }
-                    win.webContents.send('uploadStart', JSON.stringify(startObj));
+                    event.sender.send('uploadStart', JSON.stringify(startObj));
                     console.log("上传中...");
                     uploadArr[upload_id] = request.post({
                         url: uploadUrl,
@@ -329,7 +330,7 @@ const appEvent = {
                                 'message': '上传失败'
                             }
                             delete uploadArr[upload_id];
-                            win.webContents.send('uploadFailed', JSON.stringify(failObj));
+                            event.sender.send('uploadFailed', JSON.stringify(failObj));
                             return console.error('upload failed:', err);
                         } else {
                             let successObj = {
@@ -339,15 +340,16 @@ const appEvent = {
                             }
                             console.log(successObj);
                             delete uploadArr[upload_id];
-                            win.webContents.send('uploadSuccess', JSON.stringify(successObj));
+                            event.sender.send('uploadSuccess', JSON.stringify(successObj));
                         }
                     }).on('drain', (data) => {
                         let progress = uploadArr[upload_id].req.connection._bytesDispatched / fileWholeSize;
+                        progress = (progress * 100).toFixed(2) + '%'
                         let progressObj = {
                             'id': upload_id,
                             'progress': progress
                         }
-                        win.webContents.send('uploadProgress', JSON.stringify(progressObj));
+                        event.sender.send('uploadProgress', JSON.stringify(progressObj));
                         console.log(progress)
                     })
 
@@ -390,7 +392,7 @@ const fileAutoRename = (dirPath, filePath, itemName, num, callback) => {
     })
 }
 
-const startDownload = (url, MD5Name, dirPath, win) => {
+const startDownload = (url, MD5Name, dirPath, win, event) => {
     let download_id = downloadNum;
     let itemName = '';
     let writerStream;
@@ -416,7 +418,7 @@ const startDownload = (url, MD5Name, dirPath, win) => {
                             'message': "网络连接失败"
                         }
                         delete downloadArr[download_id];
-                        win.webContents.send('downloadFailed', JSON.stringify(stopObj));
+                        event.sender.send('downloadFailed', JSON.stringify(stopObj));
                         return;
                     }
                     let newFileName = path.resolve(__dirname, dirPath + '/' + hash + "." + itemName.replace(/.+\./, ""))
@@ -425,7 +427,7 @@ const startDownload = (url, MD5Name, dirPath, win) => {
                 })
             } else {
                 delete downloadArr[download_id];
-                win.webContents.send('downloadSuccess', JSON.stringify(successObj));
+                event.sender.send('downloadSuccess', JSON.stringify(successObj));
             }
         } else {
             let stopObj = {
@@ -434,7 +436,7 @@ const startDownload = (url, MD5Name, dirPath, win) => {
                 'message': "网络连接失败"
             }
             delete downloadArr[download_id];
-            win.webContents.send('downloadFailed', JSON.stringify(stopObj));
+            event.sender.send('downloadFailed', JSON.stringify(stopObj));
         }
 
     }).on('data', (data) => {
@@ -442,11 +444,12 @@ const startDownload = (url, MD5Name, dirPath, win) => {
         writerStream.write(data);
         fileSize += data.length;
         let progress = fileSize / itemSize
+        progress = (progress * 100).toFixed(2) + '%'
         let progressObj = {
             'id': download_id,
             'progress': progress
         }
-        win.webContents.send('downloadProgress', JSON.stringify(progressObj));
+        event.sender.send('downloadProgress', JSON.stringify(progressObj));
     }).on('response', (res) => {
         itemName = res.headers['content-disposition'].replace(/attachment; filename=/, '');
         itemSize = parseInt(res.headers['content-length'])
@@ -459,14 +462,14 @@ const startDownload = (url, MD5Name, dirPath, win) => {
                 'message': "文件写入失败"
             }
             delete downloadArr[download_id];
-            win.webContents.send('downloadFailed', JSON.stringify(stopObj));
+            event.sender.send('downloadFailed', JSON.stringify(stopObj));
         });
         let startObj = {
             'id': download_id,
             'itemName': itemName,
             "message": "开始下载"
         }
-        win.webContents.send('downloadStart', JSON.stringify(startObj));
+        event.sender.send('downloadStart', JSON.stringify(startObj));
     })
 }
 

@@ -207,11 +207,71 @@
         $(".stopDownload").attr('downloadid', obj.id);
     })
 
+
+    const downloadSuccess = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('downloadSuccess', message);
+        console.log(obj.id + obj.message)
+    };
+    const downloadProgress = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('downloadProgress', message);
+        console.log("下载任务" + obj.id + ":" + obj.progress)
+    };
+    const downloadStart = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('downloadStart', message);
+        console.log(obj.id + obj.message)
+    };
+    const downloadFailed = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('downloadFailed', message);
+        console.log(obj.id + obj.message)
+    };
+    const uploadSuccess = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('uploadSuccess', message);
+        console.log(obj.id + obj.message + obj.body)
+    };
+    const uploadProgress = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('uploadProgress', message);
+        console.log("上传" + obj.id + ":" + obj.progress)
+    };
+    const uploadStart = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('uploadStart', message);
+        console.log(obj.id + obj.message)
+    };
+    const uploadFailed = (event, message) => {
+        let obj = JSON.parse(message);
+        // let webview = document.getElementById('webview');
+        // webview.send('uploadFailed', message);
+        console.log(obj.id + obj.message)
+    };
+
+
+    app.on('uploadProgress', uploadProgress)
+    // app.on('uploadStart', uploadStart)
+    app.on('uploadSuccess', uploadSuccess)
+    app.on('uploadFailed', uploadFailed)
+    app.on('downloadProgress', downloadProgress)
+    // app.on('downloadStart', downloadStart)
+    app.on('downloadSuccess', downloadSuccess)
+    app.on('downloadFailed', downloadFailed)
+
     // 上传、下载相关接口-----》
     // 其中，返回的message中有相应的itemID，可根据相应的id设定相应的进度条、停止等控制
     // app.on('uploadProgress', uploadProgress)
     // app.on('uploadStart', uploadStart)
-    // app.on('uploadSuccess', uploadSucess)
+    // app.on('uploadSuccess', uploadSuccess)
     // app.on('uploadFailed', uploadFailed)
     // app.on('downloadProgress', downloadProgress)
     // app.on('downloadStart', downloadStart)
