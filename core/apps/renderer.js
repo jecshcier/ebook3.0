@@ -78,7 +78,7 @@ const uploadSucess = (event, message) => {
     let obj = JSON.parse(message);
     let webview = document.getElementById('webview');
     webview.send('uploadSucess', message);
-    console.log(obj.id + obj.message)
+    console.log(obj.id + obj.message + obj.body)
 };
 const uploadProgress = (event, message) => {
     let obj = JSON.parse(message);

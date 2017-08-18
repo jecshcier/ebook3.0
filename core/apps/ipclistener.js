@@ -309,7 +309,9 @@ const appEvent = {
                         fileWholeSize += fileObj.size
                         fileArr.push(fs.createReadStream(files[index]))
                     })
-                    data.data.upload_file = fileArr[0]
+                    data.data[data.data.files] = fileArr[0];
+                    delete data.data.files
+                    console.log(data.data)
                     let timer;
                     let startObj = {
                         'id': upload_id,
@@ -321,7 +323,7 @@ const appEvent = {
                         url: uploadUrl,
                         formData: data.data
                     }, function optionalCallback(err, httpResponse, body) {
-                        if (err) {
+                        if (err || httpResponse.statusCode !== 200) {
                             let failObj = {
                                 'id': upload_id,
                                 'message': '上传失败'
@@ -329,15 +331,16 @@ const appEvent = {
                             delete uploadArr[upload_id];
                             win.webContents.send('uploadFailed', JSON.stringify(failObj));
                             return console.error('upload failed:', err);
+                        } else {
+                            let successObj = {
+                                'id': upload_id,
+                                'message': '请求成功',
+                                'body': JSON.parse(body)
+                            }
+                            console.log(successObj);
+                            delete uploadArr[upload_id];
+                            win.webContents.send('uploadSuccess', JSON.stringify(successObj));
                         }
-                        console.log('上传ok');
-                        // clearInterval(timer);
-                        let successObj = {
-                            'id': upload_id,
-                            'message': '上传成功'
-                        }
-                        delete uploadArr[upload_id];
-                        win.webContents.send('uploadSuccess', JSON.stringify(successObj));
                     }).on('drain', (data) => {
                         let progress = uploadArr[upload_id].req.connection._bytesDispatched / fileWholeSize;
                         let progressObj = {

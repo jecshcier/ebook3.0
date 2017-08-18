@@ -22,13 +22,12 @@
     <button onclick="developTools()">开发者工具（ctrl + shift + i）</button>
     <input type="text" name="" value="">
     <button type="button" name="button" onclick="uploadFiles({
-        'url':'http://pan.tes-sys.com/skydisk-ms/api/fileUpload.html',
+        'url':'http://192.168.109.229:8080/skydisk-ms/api/fileUploadForJson.html',
         'data':{
             'd': 'AD37D6B10C4933A3F56455D983962E47',
-            'dir_id': '4262EE8CB97BD59D044FD66DCC66C068',
-            'pub_flag': '2',
-            'user_id': 'B220F7C944ECD1DDD0BF063F4439E961',
-            'response_url': ''
+            'files': 'data',
+            'url': '/chenshenhao',
+            'createUser': '9AE969E5687D99F7664C140AA4C73B48'
         }
     })">上传文件测试</button>
     <button class="stopUpload" type="button" name="button">停止上传</button>
