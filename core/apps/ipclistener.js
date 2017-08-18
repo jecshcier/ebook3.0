@@ -255,7 +255,7 @@ const appEvent = {
                             writerStream.write(data);
                             fileSize += data.length;
                             let progress = fileSize / itemSize
-                            progress = (progress * 100).toFixed(2) + '%'
+                            progress = (progress * 100).toFixed(2)
                             let progressObj = {
                                 'id': download_id,
                                 'progress': progress
@@ -272,6 +272,9 @@ const appEvent = {
 
         // 主动下载文件监听
         ipc.on('downloadFile', function(event, data) {
+            if (!data.url) {
+                return false;
+            }
             if (data.dialog) {
                 dialog.showOpenDialog({
                     'properties': ['openDirectory', 'createDirectory']
@@ -344,7 +347,7 @@ const appEvent = {
                         }
                     }).on('drain', (data) => {
                         let progress = uploadArr[upload_id].req.connection._bytesDispatched / fileWholeSize;
-                        progress = (progress * 100).toFixed(2) + '%'
+                        progress = (progress * 100).toFixed(2)
                         let progressObj = {
                             'id': upload_id,
                             'progress': progress
@@ -444,7 +447,7 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
         writerStream.write(data);
         fileSize += data.length;
         let progress = fileSize / itemSize
-        progress = (progress * 100).toFixed(2) + '%'
+        progress = (progress * 100).toFixed(2)
         let progressObj = {
             'id': download_id,
             'progress': progress
