@@ -210,6 +210,8 @@ const appEvent = {
                 if (dirPath) {
                     let filePath = path.resolve(__dirname, dirPath[0] + '/' + itemName);
                     let download_id = downloadNum;
+                    let progress;
+                    let progressInt;
                     // 文件重命名
                     fileAutoRename(dirPath, filePath, itemName, 0, (newFilePath) => {
                         let writerStream = fs.createWriteStream(newFilePath)
@@ -230,6 +232,9 @@ const appEvent = {
                         }
                         win.webContents.send('downloadStart', JSON.stringify(startObj));
                         downloadArr[download_id] = request(itemUrl, (error, response, body) => {
+                            if (progressInt) {
+                                clearInterval(progressInt);
+                            }
                             if (!error) {
                                 let successObj = {
                                     'id': download_id,
@@ -254,14 +259,17 @@ const appEvent = {
                             // decompressed data as it is received
                             writerStream.write(data);
                             fileSize += data.length;
-                            let progress = fileSize / itemSize
+                            progress = fileSize / itemSize
                             progress = (progress * 100).toFixed(2)
+
+                        })
+                        progressInt = setInterval(() => {
                             let progressObj = {
                                 'id': download_id,
                                 'progress': progress
                             }
                             win.webContents.send('downloadProgress', JSON.stringify(progressObj));
-                        })
+                        }, 500)
                     })
                 } else {
                     console.log("用户取消下载")
@@ -402,9 +410,14 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
     let fileSize = 0;
     let itemSize = 0;
     let filePath = '';
+    let progress
+    let progressInt
     downloadArr[download_id] = request(url, (error, response, body) => {
-        writerStream.end();
+        if (progressInt) {
+            clearInterval(progressInt);
+        }
         if (!error) {
+            writerStream.end();
             let successObj = {
                 'id': download_id,
                 'itemName': itemName,
@@ -446,13 +459,9 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
         // decompressed data as it is received
         writerStream.write(data);
         fileSize += data.length;
-        let progress = fileSize / itemSize
+        progress = fileSize / itemSize
         progress = (progress * 100).toFixed(2)
-        let progressObj = {
-            'id': download_id,
-            'progress': progress
-        }
-        event.sender.send('downloadProgress', JSON.stringify(progressObj));
+
     }).on('response', (res) => {
         itemName = res.headers['content-disposition'].replace(/attachment; filename=/, '');
         itemSize = parseInt(res.headers['content-length'])
@@ -474,6 +483,13 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
         }
         event.sender.send('downloadStart', JSON.stringify(startObj));
     })
+    progressInt = setInterval(() => {
+        let progressObj = {
+            'id': download_id,
+            'progress': progress
+        }
+        event.sender.send('downloadProgress', JSON.stringify(progressObj));
+    }, 500)
 }
 
 module.exports = appEvent
