@@ -426,7 +426,7 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
                     }
                     let newFileName = path.resolve(__dirname, dirPath + '/' + hash + "." + itemName.replace(/.+\./, ""))
                     fs.renameSync(filePath, newFileName)
-
+                    event.sender.send('downloadSuccess', JSON.stringify(successObj));
                 })
             } else {
                 delete downloadArr[download_id];
