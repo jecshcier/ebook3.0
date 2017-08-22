@@ -15,6 +15,8 @@
     <button onclick="get()">get请求</button>
     <button onclick="get2()">网盘get请求</button>
     <button onclick="addProcess()">新建教学过程</button>
+    <button onclick="editProcess()">编辑教学过程</button>
+    <button onclick="findFileId()">查找教学过程文件id是否存在</button>
     <button onclick="max()">最大化</button>
     <button onclick="min()">最小化</button>
     <button onclick="exitApp()">关闭</button>
@@ -60,7 +62,7 @@
             alert('post请求成功\n' + mess)
         })
     }
-    // post请求接口
+    // 新建教学过程
     function addProcess() {
         app.send('addProcess', {
             info: {
@@ -105,6 +107,60 @@
             callback: 'addProcessCallback'
         })
         app.once('addProcessCallback', function(event, mess) {
+            alert('新建教学过程请求成功\n' + mess)
+        })
+    }
+
+    function findFileId(){
+        app.send('findFileId', {
+            file_id:'111111111111',
+            callback: 'findFileIdsCallback'
+        })
+        app.once('findFileIdCallback', function(event, mess) {
+            alert('新建教学过程请求成功\n' + mess)
+        })
+    }
+
+    // 修改教学过程
+    function editProcess() {
+        app.send('editProcess', {
+            info: {
+                'id': '0c80a21b265d4ee08d9093666c7747c2'
+            },
+            data: [{
+                'file_id': '编辑教学过程测试',
+                'detail_index': 0,
+                'file_name': '编辑教学过程测试',
+                'ext_name': '编辑教学过程测试',
+                'edit_name': '编辑教学过程测试'
+            }, {
+                'file_id': '编辑教学过程测试',
+                'detail_index': 0,
+                'file_name': '编辑教学过程测试',
+                'ext_name': '编辑教学过程测试',
+                'edit_name': '编辑教学过程测试'
+            }, {
+                'file_id': '编辑教学过程测试',
+                'detail_index': 0,
+                'file_name': '编辑教学过程测试',
+                'ext_name': '编辑教学过程测试',
+                'edit_name': '编辑教学过程测试'
+            }, {
+                'file_id': '编辑教学过程测试',
+                'detail_index': 0,
+                'file_name': '编辑教学过程测试',
+                'ext_name': '编辑教学过程测试',
+                'edit_name': '编辑教学过程测试'
+            }, {
+                'file_id': '编辑教学过程测试',
+                'detail_index': 0,
+                'file_name': '编辑教学过程测试',
+                'ext_name': '编辑教学过程测试',
+                'edit_name': '编辑教学过程测试'
+            }],
+            callback: 'editProcessCallback'
+        })
+        app.once('editProcessCallback', function(event, mess) {
             alert('新建教学过程请求成功\n' + mess)
         })
     }

@@ -104,6 +104,11 @@ const appEvent = {
         // 新建教学过程
 
         ipc.on('addProcess', function(event, data) {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
             let pId = uuid.v4().replace(/-/g, '')
             let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
             db.serialize(function() {
@@ -118,28 +123,136 @@ const appEvent = {
                     $pos_y: data.info.pos_y,
                     $create_time: currentTime,
                     $update_time: currentTime
-                });
-                stmt.finalize();
-                for (var i = 0; i < data.data.length; i++) {
-                    let resourceID = uuid.v4().replace(/-/g, '')
-                    let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time,update_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time,$update_time)");
-                    stmt2.run({
-                        $id: resourceID,
-                        $file_id: data.data[i].file_id,
-                        $process_id: pId,
-                        $detail_index: data.data[i].detail_index,
-                        $file_name: data.data[i].file_name,
-                        $ext_name: data.data[i].ext_name,
-                        $convert_name: null,
-                        $edit_name: data.data[i].edit_name,
-                        $create_time: currentTime,
-                        $update_time: currentTime
-                    });
-                    stmt2.finalize();
-                }
+                }, (err) => {
+                    stmt.finalize();
+                    if (err) {
+                        info.message = "新建教学过程错误"
+                        event.sender.send(data.callback, JSON.parse(info));
+                        return false;
+                    } else {
+                        for (var i = 0; i < data.data.length; i++) {
+                            let resourceID = uuid.v4().replace(/-/g, '')
+                            let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time)");
+                            stmt2.run({
+                                $id: resourceID,
+                                $file_id: data.data[i].file_id,
+                                $process_id: pId,
+                                $detail_index: data.data[i].detail_index,
+                                $file_name: data.data[i].file_name,
+                                $ext_name: data.data[i].ext_name,
+                                $convert_name: null,
+                                $edit_name: data.data[i].edit_name,
+                                $create_time: currentTime
+                            }, (err) => {
+                                stmt2.finalize();
+                                if (err) {
+                                    info.message = "新建教学过程错误"
+                                    event.sender.send(data.callback, JSON.parse(info));
+                                    return false;
+                                } else {
 
+                                }
+                            });
+                        }
+                        info.flag = true
+                        event.sender.send(data.callback, JSON.parse(info));
+                    }
+                });
             });
-            event.sender.send(data.callback, pId);
+        })
+
+        // 更新教学过程
+
+        ipc.on('editProcess', function(event, data) {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            let pId = uuid.v4().replace(/-/g, '')
+            let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
+            db.serialize(function() {
+                let stmt = db.prepare("update teach_process set update_time = $update_time where id = $id");
+                stmt.run({
+                    $id: data.info.id,
+                    $update_time: currentTime
+                }, (err) => {
+                    stmt.finalize();
+                    if (err) {
+                        info.message = "编辑教学过程错误"
+                        event.sender.send(data.callback, JSON.parse(info));
+                        return false;
+                    } else {
+                        let stmt3 = db.prepare("delete from process_files where process_id = $id");
+                        stmt3.run({
+                            $id: data.info.id
+                        }, (err) => {
+                            stmt3.finalize();
+                            if (err) {
+                                info.message = "编辑教学过程错误"
+                                event.sender.send(data.callback, JSON.parse(info));
+                                return false;
+                            } else {
+                                for (var i = 0; i < data.data.length; i++) {
+                                    let resourceID = uuid.v4().replace(/-/g, '')
+                                    let stmt2 = db.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,edit_name,create_time) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$edit_name,$create_time)");
+                                    stmt2.run({
+                                        $id: resourceID,
+                                        $file_id: data.data[i].file_id,
+                                        $process_id: data.info.id,
+                                        $detail_index: data.data[i].detail_index,
+                                        $file_name: data.data[i].file_name,
+                                        $ext_name: data.data[i].ext_name,
+                                        $convert_name: null,
+                                        $edit_name: data.data[i].edit_name,
+                                        $create_time: currentTime
+                                    }, (err) => {
+                                        stmt2.finalize();
+                                        if (err) {
+                                            info.message = "编辑教学过程错误"
+                                            event.sender.send(data.callback, JSON.parse(info));
+                                            return false;
+                                        } else {
+                                            info.flag = true
+                                            event.sender.send(data.callback, JSON.parse(info));
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        })
+
+        ipc.on('findFileId', (event, data) => {
+            db.serialize(function() {
+                db.get("select * from process_files where file_id = $file_id", {
+                    $file_id: data.file_id
+                }, function(err, row) {
+                    let info = {
+                        flag: false,
+                        message: '',
+                        data: null
+                    }
+                    if (!err) {
+                        if (row) {
+                            info.flag = true
+                            info.data = row
+                            info.message = "文件id存在"
+                            event.sender.send(data.callback, JSON.parse(info));
+                        } else {
+                            info.flag = true
+                            info.message = "文件id不存在"
+                            event.sender.send(data.callback, JSON.parse(info));
+                        }
+                    } else {
+                        info.flag = false
+                        info.message = "文件id查找失败"
+                        event.sender.send(data.callback, JSON.parse(info));
+                    }
+                });
+            });
         })
 
     },
@@ -190,6 +303,8 @@ const appEvent = {
             // console.log(uploadArr[id]);
             if (downloadArr[data.id]) {
                 // console.log(downloadArr[data.id])
+                // console.log(downloadArr[data.id].req.socket)
+                // downloadArr[data.id].req.socket.abort();
                 downloadArr[data.id].req.abort();
                 event.sender.send(data.callback, "成功");
             } else {
@@ -413,6 +528,7 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
     let progress
     let progressInt
     downloadArr[download_id] = request(url, (error, response, body) => {
+        console.log(body)
         if (progressInt) {
             clearInterval(progressInt);
         }
@@ -431,7 +547,7 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
                         let stopObj = {
                             'id': download_id,
                             'itemName': itemName,
-                            'message': "网络连接失败"
+                            'message': "文件重命名失败"
                         }
                         delete downloadArr[download_id];
                         event.sender.send('downloadFailed', JSON.stringify(stopObj));
@@ -489,7 +605,7 @@ const startDownload = (url, MD5Name, dirPath, win, event) => {
             'progress': progress
         }
         event.sender.send('downloadProgress', JSON.stringify(progressObj));
-    }, 500)
+    }, 100)
 }
 
 module.exports = appEvent
