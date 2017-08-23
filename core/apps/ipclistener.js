@@ -153,6 +153,7 @@ const appEvent = {
                                     if (i == data.data.length - 1) {
                                         info.flag = true
                                         info.message = "新建教学过程成功"
+                                        info.data = pId
                                         event.sender.send(data.callback, JSON.stringify(info));
                                     }
                                 }
