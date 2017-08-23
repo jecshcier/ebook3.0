@@ -16,7 +16,13 @@
     <button onclick="get2()">网盘get请求</button>
     <button onclick="addProcess()">新建教学过程</button>
     <button onclick="editProcess()">编辑教学过程</button>
-    <button onclick="findFileId()">查找教学过程文件id是否存在</button>
+    <button onclick="fileIsExsit()">查找教学过程文件是否存在</button>
+    <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
+    <button onclick="loadProcess()">加载教学过程</button>
+    <button onclick="deleteProcess()">删除教学过程</button>
+    <button onclick="loadProcessFiles()">加载教学过程中的文件</button>
+    <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
+    <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
     <button onclick="max()">最大化</button>
     <button onclick="min()">最小化</button>
     <button onclick="exitApp()">关闭</button>
@@ -111,13 +117,54 @@
         })
     }
 
-    function findFileId(){
-        app.send('findFileId', {
-            file_id:'111111111111',
-            callback: 'findFileIdsCallback'
+    function fileIsExsit(){
+        app.send('fileIsExsit', {
+            fileName:'aaa.a',
+            callback: 'fileIsExsitCallback'
         })
-        app.once('findFileIdCallback', function(event, mess) {
-            alert('新建教学过程请求成功\n' + mess)
+        app.once('fileIsExsitCallback', function(event, mess) {
+            alert('查找文件id请求成功\n' + mess)
+        })
+    }
+
+    function fileIsDownloaded(){
+        app.send('fileIsDownloaded', {
+            file_id:'编辑教学过程测试',
+            callback: 'fileIsDownloadedCallback'
+        })
+        app.once('fileIsDownloadedCallback', function(event, mess) {
+            alert('更新文件下载状态成功\n' + mess)
+        })
+    }
+    function loadProcess(){
+        app.send('loadProcess', {
+            callback: 'loadProcessCallback'
+        })
+        app.once('loadProcessCallback', function(event, mess) {
+            alert('获取教学过程成功\n' + mess)
+        })
+    }
+
+    // 删除教学过程
+
+    function deleteProcess(){
+        app.send('deleteProcess', {
+            process_id:'c543cbca28c94b69859dd81f64c09e09',
+            callback: 'deleteProcesssCallback'
+        })
+        app.once('deleteProcesssCallback', function(event, mess) {
+            alert('删除教学过程成功\n' + mess)
+        })
+    }
+
+    //加载教学过程的文件
+    function loadProcessFiles(){
+        app.send('loadProcessFiles', {
+            process_id:'d4def94707c74d9e9a04ddc6a8307902',
+            callback: 'loadProcessFilesCallback'
+        })
+        app.once('loadProcessFilesCallback', function(event, mess) {
+            alert('加载教学过程文件成功\n' + mess)
         })
     }
 
@@ -125,43 +172,51 @@
     function editProcess() {
         app.send('editProcess', {
             info: {
-                'id': '0c80a21b265d4ee08d9093666c7747c2'
+                'id': 'd4def94707c74d9e9a04ddc6a8307902',
+                'pos_x':121,
+                'pos_y':333,
+                'count':4,
             },
             data: [{
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试'
+                'edit_name': '编辑教学过程测试',
+                'isDownload':0
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试'
+                'edit_name': '编辑教学过程测试',
+                'isDownload':0
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试'
+                'edit_name': '编辑教学过程测试',
+                'isDownload':1
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试'
+                'edit_name': '编辑教学过程测试',
+                'isDownload':0
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试'
+                'edit_name': '编辑教学过程测试',
+                'isDownload':1
             }],
             callback: 'editProcessCallback'
         })
         app.once('editProcessCallback', function(event, mess) {
-            alert('新建教学过程请求成功\n' + mess)
+            alert('编辑教学过程请求成功\n' + mess)
         })
     }
 
@@ -244,7 +299,7 @@
         var data = {
             url:url,
             dialog:false,
-            MD5Name:false
+            newName:'aaa.a'
         }
         app.send('downloadFile', data)
     });
