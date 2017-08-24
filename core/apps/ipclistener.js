@@ -213,7 +213,7 @@ const appEvent = {
                                             $detail_index: data.data[i].detail_index,
                                             $file_name: data.data[i].file_name,
                                             $ext_name: data.data[i].ext_name,
-                                            $convert_name: null,
+                                            $convert_name: data.data[i].file_id + '.' + data.data[i].ext_name,
                                             $edit_name: data.data[i].edit_name,
                                             $isDownload: data.data[i].isDownload,
                                             $create_time: currentTime
