@@ -8,13 +8,14 @@
 const path = require('path')
 const express = require('express')
 const expressServer = express()
-const creatServer = function(lPORT,ldir) {
+const creatServer = function(lPORT, ldir) {
     let PORT = lPORT || 53480
     let dir = ldir || 'html'
     expressServer.listen(PORT, function() {
         console.log('HTTP Server is running on: http://localhost:%s', PORT)
     })
-    expressServer.use(express.static(path.join(__dirname, '../' + dir)))
+    console.log(ldir)
+    expressServer.use('/', express.static(ldir))
 }
 
 module.exports = creatServer
