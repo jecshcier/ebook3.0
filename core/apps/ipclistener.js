@@ -2,7 +2,7 @@
  * 渲染进程监听器              *
  * author: Shayne C     *
  * createTime: 2017.4.5 *
- * updateTime: 2017.8.14 *
+ * updateTime: 2017.8.29 *
  ************************/
 
 const ipc = require('electron').ipcMain
@@ -519,6 +519,7 @@ const appEvent = {
                     info.flag = true
                     info.message = "加载成功"
                     info.data = row
+                    console.log(info)
                     event.sender.send(data.callback, JSON.stringify(info));
                 }
             })
