@@ -140,7 +140,7 @@ const appEvent = {
                                 $detail_index: data.data[i].detail_index,
                                 $file_name: data.data[i].file_name,
                                 $ext_name: data.data[i].ext_name,
-                                $convert_name: data.data[i].file_id + '.' + data.data[i].ext_name,
+                                $convert_name: data.data[i].convert_name,
                                 $edit_name: data.data[i].edit_name,
                                 $create_time: currentTime
                             }, (err) => {
@@ -154,7 +154,7 @@ const appEvent = {
                                         info.flag = true
                                         info.message = "新建教学过程成功"
                                         info.data = {
-                                            'id':pId
+                                            'id': pId
                                         }
                                         event.sender.send(data.callback, JSON.stringify(info));
                                     }
@@ -213,7 +213,7 @@ const appEvent = {
                                             $detail_index: data.data[i].detail_index,
                                             $file_name: data.data[i].file_name,
                                             $ext_name: data.data[i].ext_name,
-                                            $convert_name: data.data[i].file_id + '.' + data.data[i].ext_name,
+                                            $convert_name: data.data[i].convert_name,
                                             $edit_name: data.data[i].edit_name,
                                             $isDownload: data.data[i].isDownload,
                                             $create_time: currentTime
@@ -306,8 +306,8 @@ const appEvent = {
                     event.sender.send(data.callback, JSON.stringify(info));
                 }
             })
+            stmt.finalize();
         })
-
 
         // 加载所有教学过程
         ipc.on('loadProcess', (event, data) => {
@@ -316,8 +316,12 @@ const appEvent = {
                 message: '',
                 data: null
             }
-            let stmt = db.prepare("select * from teach_process order by create_time asc");
-            stmt.all({}, (err, row) => {
+            let stmt = db.prepare("select * from teach_process where user_id = $user_id and book_id = $book_id order by create_time asc");
+            stmt.all({
+                $user_id: data.data.user_id,
+                $book_id: data.data.book_id
+            }, (err, row) => {
+                stmt.finalize();
                 if (err) {
                     info.message = "加载失败"
                     event.sender.send(data.callback, JSON.stringify(info));
@@ -328,6 +332,137 @@ const appEvent = {
                     event.sender.send(data.callback, JSON.stringify(info));
                 }
             })
+        })
+
+        // 导出教学过程
+        ipc.on('exportProcess', (event, data) => {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            dialog.showOpenDialog({
+                'properties': ['openDirectory', 'createDirectory']
+            }, (dirPath) => {
+                if (dirPath) {
+                    let filePath = path.resolve(__dirname, dirPath + '/user.db');
+                    fs.pathExists(filePath).then((exists) => {
+                        if (exists) {
+                            info.message = "文件已存在"
+                            event.sender.send(data.callback, JSON.stringify(info));
+                        } else {
+                            // 创建新db
+                            let MyDB = new sqlite3.Database(filePath)
+                            MyDB.run(require("./coreConfig").processSql, (err) => {
+                                if (err) {
+                                    info.message = "错误"
+                                    event.sender.send(data.callback, JSON.stringify(info));
+                                } else {
+                                    MyDB.run(require("./coreConfig").process_files_Sql, (err) => {
+                                        if (err) {
+                                            info.message = "错误"
+                                            event.sender.send(data.callback, JSON.stringify(info));
+                                        } else {
+                                            // 查找当前用户的教学过程
+                                            let stmt = db.prepare("select * from teach_process where user_id = $user_id and book_id = $book_id");
+
+                                            stmt.all({
+                                                $user_id: data.data.user_id,
+                                                $book_id: data.data.book_id
+                                            }, (err, row) => {
+                                                stmt.finalize();
+                                                if (err) {
+                                                    info.message = "错误"
+                                                    event.sender.send(data.callback, JSON.stringify(info));
+                                                } else {
+                                                    // 插入新教学过程到新库
+                                                    row.forEach((el, index) => {
+                                                        let len1 = row.length - 1;
+                                                        let currentNum = index;
+                                                        let stmt2 = MyDB.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
+                                                        stmt2.run({
+                                                            $id: el.id,
+                                                            $book_id: el.book_id,
+                                                            $user_id: el.user_id,
+                                                            $page_id: el.page_id,
+                                                            $count: el.count,
+                                                            $pos_x: el.pos_x,
+                                                            $pos_y: el.pos_y,
+                                                            $create_time: el.create_time,
+                                                            $update_time: el.update_time
+                                                        }, (err) => {
+                                                            stmt2.finalize();
+                                                            if (err) {
+                                                                info.message = "插入失败"
+                                                                event.sender.send(data.callback, JSON.stringify(info));
+
+                                                            } else {
+                                                                // 根据教学过程的id查找相关的文件
+                                                                let stmt3 = db.prepare("select * from process_files where process_id = $process_id");
+                                                                stmt3.all({
+                                                                    $process_id: el.id
+                                                                }, (err, file_row) => {
+                                                                    stmt3.finalize()
+                                                                    if (err) {
+                                                                        info.message = "查找失败"
+                                                                        event.sender.send(data.callback, JSON.stringify(info));
+                                                                    } else {
+                                                                        // 查找出来的文件插入到新库中
+                                                                        file_row.forEach((el, index) => {
+                                                                            let stmt5 = MyDB.prepare("INSERT INTO process_files (id,file_id,process_id,detail_index,file_name,ext_name,convert_name,file_md5,edit_name,create_time,isDownload) VALUES ($id,$file_id,$process_id,$detail_index,$file_name,$ext_name,$convert_name,$file_md5,$edit_name,$create_time,$isDownload)");
+                                                                            stmt5.run({
+                                                                                $id: el.id,
+                                                                                $file_id: el.file_id,
+                                                                                $process_id: el.process_id,
+                                                                                $detail_index: el.detail_index,
+                                                                                $file_name: el.file_name,
+                                                                                $ext_name: el.ext_name,
+                                                                                $convert_name: el.convert_name,
+                                                                                $file_md5: el.file_md5,
+                                                                                $edit_name: el.edit_name,
+                                                                                $create_time: el.create_time,
+                                                                                $isDownload: el.isDownload
+                                                                            }, (err) => {
+                                                                                stmt5.finalize();
+                                                                                if (len1 === currentNum && index === file_row.length - 1) {
+                                                                                    info.flag = true
+                                                                                    info.message = "导出成功"
+                                                                                    event.sender.send(data.callback, JSON.stringify(info));
+                                                                                }
+                                                                            })
+                                                                        })
+                                                                    }
+                                                                })
+                                                            }
+                                                        })
+                                                    })
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    })
+                } else {
+                    return false;
+                }
+            })
+            // let stmt = db.prepare("select * from teach_process where user_id = $user_id and book_id = $book_id order by create_time asc");
+            // stmt.all({
+            //     $user_id: data.data.user_id,
+            //     $book_id: data.data.book_id
+            // }, (err, row) => {
+            //     if (err) {
+            //         info.message = "加载失败"
+            //         event.sender.send(data.callback, JSON.stringify(info));
+            //     } else {
+            //         info.flag = true
+            //         info.message = "加载成功"
+            //         info.data = row
+            //         event.sender.send(data.callback, JSON.stringify(info));
+            //     }
+            // })
         })
 
         // 删除教学过程
@@ -341,6 +476,7 @@ const appEvent = {
             stmt.all({
                 $process_id: data.process_id
             }, (err) => {
+                stmt.finalize();
                 if (err) {
                     info.message = "删除失败"
                     event.sender.send(data.callback, JSON.stringify(info));
@@ -348,7 +484,8 @@ const appEvent = {
                     let stmt2 = db.prepare("delete from process_files where process_id=$process_id");
                     stmt2.all({
                         $process_id: data.process_id
-                    }, (err,row) => {
+                    }, (err, row) => {
+                        stmt2.finalize();
                         if (err) {
                             info.message = "删除失败"
                             event.sender.send(data.callback, JSON.stringify(info));
@@ -374,6 +511,7 @@ const appEvent = {
             stmt.all({
                 $process_id: data.process_id
             }, (err, row) => {
+                stmt.finalize();
                 if (err) {
                     info.message = "加载失败"
                     event.sender.send(data.callback, JSON.stringify(info));

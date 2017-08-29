@@ -105,7 +105,7 @@ function registerShortcut() {
 
     // 全屏
 
-    globalShortcut.register('F2', () => {
+    globalShortcut.register('F11', () => {
         if (!win.isFullScreen()) {
             win.setFullScreen(true)
         } else {

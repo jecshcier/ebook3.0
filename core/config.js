@@ -1,6 +1,6 @@
 const config = {
     "title":"ebook3.0",
-    "useServer":true,
+    "useServer":false,
     "localServerConfig":{
         "PORT":53480,
         "root":process.cwd() + "/../html"
