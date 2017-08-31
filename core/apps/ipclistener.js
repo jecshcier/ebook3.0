@@ -536,11 +536,27 @@ const appEvent = {
                         //     fs.ensureFile(config.bookUrl + filePath).then((err) => {}, (err) => {})
                         // })
                         //
-                        downloadBooks(0, result.data)
+                        //
+                        //伪多线程下载 --->
+                        let fileArr = result.data;
+                        // 已下载的文件数
+                        let tempNum = 0
+                        // 确定开启的线程数
+                        let threadNum = 10
+                        // 计时
+                        let time = 0
+                        let timer = setInterval(()=>{
+                            time += 60;
+                        },60)
+                        // 下载失败队列
+                        let errArr = [];
+                        // 开始下载
+                        for (var i = 0; i < 10; i++) {
+                            downloadBooks(i, fileArr)
+                        }
+
                         function downloadBooks(index, data) {
-                            console.log(index/data.length)
                             if (!data[index]) {
-                                console.log("教材下载完成")
                                 return;
                             }
                             let num = index;
@@ -548,22 +564,75 @@ const appEvent = {
                             let filePath = config.bookUrl + downloadUrl
                             fs.ensureFile(filePath).then(() => {
                                 downloadThread(data[num].downloadUrl, filePath).then((body) => {
-                                    console.log(num)
+                                    console.log(tempNum/(fileArr.length - 1))
                                     console.log(body)
-                                    num++;
+                                    if(fileArr.length - 1 === tempNum){
+                                        clearInterval(timer)
+                                        console.log("教材下载完成")
+                                        console.log("耗时" + (time/1000).toFixed(2) + "秒")
+                                        if (errArr.length) {
+                                            console.log("以下文件下载失败,清重试")
+                                            console.log(errArr)
+                                        }
+                                    }
+                                    // num ++;
+                                    num += threadNum;
+                                    tempNum++;
                                     downloadBooks(num, data)
-                                }, (err) => {})
+                                }, (info) => {
+                                    errArr.push(info)
+                                    num += threadNum;
+                                    tempNum++;
+                                    downloadBooks(num, data)
+                                })
                             }, (err) => {})
                         }
 
                         function downloadThread(downloadUrl, path) {
                             return new Promise((resolve, reject) => {
                                 request(downloadUrl, (error, response, body) => {
+                                    if (error) {
+                                        let info = [path,error]
+                                        reject(info)
+                                    }
                                     resolve(path + "下载完成")
-                                    // console.log(filePath + "下载完成");
                                 }).pipe(fs.createWriteStream(path))
                             })
                         }
+
+
+                        // downloadBooks(fileArr)
+                        // function downloadBooks() {
+                        //     // if (!data[index]) {
+                        //     //     console.log("教材下载完成")
+                        //     //     return;
+                        //     // }
+                        //     let fileArrLen = fileArr.length - 1
+                        //     let downloadUrl = fileArr[fileArrLen].downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
+                        //     let filePath = config.bookUrl + downloadUrl
+                        //     fs.ensureFile(filePath).then(() => {
+                        //         downloadThread(fileArr[fileArrLen].downloadUrl, filePath).then((body) => {
+                        //             console.log(filePath + "下载")
+                        //             fileArr.pop()
+                        //             if (!fileArr.length) {
+                        //                 console.log("下载完成")
+                        //                 return;
+                        //             }
+                        //             downloadBooks(fileArr)
+                        //         }, (err) => {})
+                        //     }, (err) => {})
+                        // }
+                        //
+                        // function downloadThread(downloadUrl, path) {
+                        //     return new Promise((resolve, reject) => {
+                        //         request(downloadUrl, (error, response, body) => {
+                        //             resolve(path + "下载完成")
+                        //             // console.log(filePath + "下载完成");
+                        //         }).pipe(fs.createWriteStream(path))
+                        //     })
+                        // }
+
+
                     } else {
                         // err
                     }
