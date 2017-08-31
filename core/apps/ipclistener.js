@@ -448,21 +448,6 @@ const appEvent = {
                     return false;
                 }
             })
-            // let stmt = db.prepare("select * from teach_process where user_id = $user_id and book_id = $book_id order by create_time asc");
-            // stmt.all({
-            //     $user_id: data.data.user_id,
-            //     $book_id: data.data.book_id
-            // }, (err, row) => {
-            //     if (err) {
-            //         info.message = "加载失败"
-            //         event.sender.send(data.callback, JSON.stringify(info));
-            //     } else {
-            //         info.flag = true
-            //         info.message = "加载成功"
-            //         info.data = row
-            //         event.sender.send(data.callback, JSON.stringify(info));
-            //     }
-            // })
         })
 
         // 删除教学过程
@@ -523,6 +508,76 @@ const appEvent = {
                     event.sender.send(data.callback, JSON.stringify(info));
                 }
             })
+        })
+
+        ipc.on('downloadBooks', (event, data) => {
+            console.log(data)
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            let url = "http://es.tes-sys.com/ebook_services/update/bymd5str.html?jsonstr="
+            let query = {
+                count: 0,
+                isbn: data.isbn,
+                data: []
+            }
+            let stringify = JSON.stringify(query);
+            console.log(url + stringify);
+            request.post(url + stringify, (error, response, body) => {
+                if (body) {
+                    let result = JSON.parse(body)
+                    console.log(result)
+                    if (result.stateCode === '100') {
+                        console.log(result.data)
+                        // result.data.forEach((el, index) => {
+                        //     let filePath = el.downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
+                        //     fs.ensureFile(config.bookUrl + filePath).then((err) => {}, (err) => {})
+                        // })
+                        //
+                        downloadBooks(0, result.data)
+                        function downloadBooks(index, data) {
+                            console.log(index/data.length)
+                            if (!data[index]) {
+                                console.log("教材下载完成")
+                                return;
+                            }
+                            let num = index;
+                            let downloadUrl = data[num].downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
+                            let filePath = config.bookUrl + downloadUrl
+                            fs.ensureFile(filePath).then(() => {
+                                downloadThread(data[num].downloadUrl, filePath).then((body) => {
+                                    console.log(num)
+                                    console.log(body)
+                                    num++;
+                                    downloadBooks(num, data)
+                                }, (err) => {})
+                            }, (err) => {})
+                        }
+
+                        function downloadThread(downloadUrl, path) {
+                            return new Promise((resolve, reject) => {
+                                request(downloadUrl, (error, response, body) => {
+                                    resolve(path + "下载完成")
+                                    // console.log(filePath + "下载完成");
+                                }).pipe(fs.createWriteStream(path))
+                            })
+                        }
+                    } else {
+                        // err
+                    }
+                } else {
+                    // err
+                }
+            }).on('data', (data) => {}).on('response', (res) => {})
+            // progressInt = setInterval(() => {
+            //     let progressObj = {
+            //         'id': download_id,
+            //         'progress': progress
+            //     }
+            //     // event.sender.send('downloadProgress', JSON.stringify(progressObj));
+            // }, 100)
         })
 
     },

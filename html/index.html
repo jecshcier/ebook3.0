@@ -23,6 +23,7 @@
     <button onclick="loadProcessFilesArr(['70840e2ac87f4440b61fab3e908f3851','74d4503e65c3482eab3c79eda78cb2e6','bd4742f67f38450788943929cca5f85a','d4def94707c74d9e9a04ddc6a8307902'])">加载教学过程中的文件</button>
     <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
     <button onclick="exportProcess()">导出教学过程</button>
+    <button onclick="downloadBooks('zytjjs')">下载图书</button>
     <button onclick="max()">最大化</button>
     <button onclick="min()">最小化</button>
     <button onclick="exitApp()">关闭</button>
@@ -163,6 +164,15 @@
         })
         app.once('exportProcessCallback', function(event, mess) {
             alert('导出教学过程成功\n' + mess)
+        })
+    }
+    function downloadBooks(isbn){
+        app.send('downloadBooks', {
+            isbn:isbn,
+            callback: 'downloadBooksCallback'
+        })
+        app.once('downloadBooksCallback', function(event, mess) {
+            alert('下载成功\n' + mess)
         })
     }
 
