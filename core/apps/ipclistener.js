@@ -530,7 +530,7 @@ const appEvent = {
                     let result = JSON.parse(body)
                     console.log(result)
                     if (result.stateCode === '100') {
-                        console.log(result.data)
+                        // console.log(result.data)
                         // result.data.forEach((el, index) => {
                         //     let filePath = el.downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
                         //     fs.ensureFile(config.bookUrl + filePath).then((err) => {}, (err) => {})
@@ -545,13 +545,13 @@ const appEvent = {
                         let threadNum = 10
                         // 计时
                         let time = 0
-                        let timer = setInterval(()=>{
+                        let timer = setInterval(() => {
                             time += 60;
-                        },60)
+                        }, 60)
                         // 下载失败队列
-                        let errArr = [];
+                        let errArr = {};
                         // 开始下载
-                        for (var i = 0; i < 10; i++) {
+                        for (var i = 0; i < threadNum; i++) {
                             downloadBooks(i, fileArr)
                         }
 
@@ -560,46 +560,79 @@ const appEvent = {
                                 return;
                             }
                             let num = index;
-                            let downloadUrl = data[num].downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
-                            let filePath = config.bookUrl + downloadUrl
+                            let filePath = config.bookUrl + data[num].downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
                             fs.ensureFile(filePath).then(() => {
-                                downloadThread(data[num].downloadUrl, filePath).then((body) => {
-                                    console.log(tempNum/(fileArr.length - 1))
+                                downloadThread(num, data[num].downloadUrl, filePath).then((body) => {
+                                    console.log(tempNum / (fileArr.length - 1))
                                     console.log(body)
-                                    if(fileArr.length - 1 === tempNum){
+                                    if (fileArr.length - 1 === tempNum) {
                                         clearInterval(timer)
                                         console.log("教材下载完成")
-                                        console.log("耗时" + (time/1000).toFixed(2) + "秒")
+                                        console.log("耗时" + (time / 1000).toFixed(2) + "秒")
                                         if (errArr.length) {
-                                            console.log("以下文件下载失败,清重试")
+                                            console.log("以下文件下载失败,请重试")
                                             console.log(errArr)
+                                            // errArrLen = errArr.length - 1;
+                                            // currentNum = 0;
+                                            // downloadThread(errArr[currentNum].downloadUrl,errArr[currentNum].path).then(()=>{
+                                            //     if (currentNum === errArrLen) {
+                                            //         console.log("重新下载成功");
+                                            //         return;
+                                            //     }
+                                            //     downloadThread(errArr[currentNum].downloadUrl,errArr[currentNum].path)
+                                            //     currentNum ++;
+                                            //
+                                            // }), (info)=>{
+                                            //     console.log("以下文件下载失败，请检查网络")
+                                            // })
                                         }
+                                        return;
+                                    }
+                                    if (errArr.num) {
+                                        delete errArr.num
                                     }
                                     // num ++;
                                     num += threadNum;
                                     tempNum++;
                                     downloadBooks(num, data)
                                 }, (info) => {
-                                    errArr.push(info)
-                                    num += threadNum;
-                                    tempNum++;
-                                    downloadBooks(num, data)
+                                    if (!errArr.failNum) {
+                                        let failNum = info.id
+                                        info.count = 0;
+                                        console.log("任务" + failNum + "下载失败，准备重试……");
+                                        errArr.failNum = info;
+                                        downloadBooks(failNum, data)
+                                    }
+                                    else {
+                                        info.count ++;
+                                        if (info.count > 3) {
+                                            num += threadNum;
+                                            tempNum++;
+                                            downloadBooks(num, data)
+                                        }
+                                    }
+
                                 })
                             }, (err) => {})
                         }
 
-                        function downloadThread(downloadUrl, path) {
+                        function downloadThread(num, downloadUrl, path) {
                             return new Promise((resolve, reject) => {
                                 request(downloadUrl, (error, response, body) => {
                                     if (error) {
-                                        let info = [path,error]
+                                        console.log("错误" + num)
+                                        let info = {
+                                            id: num,
+                                            url: downloadUrl,
+                                            path: path,
+                                            error: error
+                                        }
                                         reject(info)
                                     }
                                     resolve(path + "下载完成")
                                 }).pipe(fs.createWriteStream(path))
                             })
                         }
-
 
                         // downloadBooks(fileArr)
                         // function downloadBooks() {
@@ -632,14 +665,13 @@ const appEvent = {
                         //     })
                         // }
 
-
                     } else {
                         // err
                     }
                 } else {
                     // err
                 }
-            }).on('data', (data) => {}).on('response', (res) => {})
+            })
             // progressInt = setInterval(() => {
             //     let progressObj = {
             //         'id': download_id,
