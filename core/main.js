@@ -56,8 +56,8 @@ app.on('ready', () => {
         height: config.height,
         title: config.title,
         center: true,
-        fullscreen:config.fullscreen,
-        fullscreenable:config.fullscreenable
+        fullscreen: config.fullscreen,
+        fullscreenable: config.fullscreenable
     }, defaultUrl)
 
     // 发起window监听
@@ -87,8 +87,8 @@ app.on('activate', () => {
             height: config.height,
             title: config.title,
             center: true,
-            fullscreen:config.fullscreen,
-            fullscreenable:config.fullscreenable
+            fullscreen: config.fullscreen,
+            fullscreenable: config.fullscreenable
         }, defaultUrl)
     }
 })
@@ -156,7 +156,8 @@ function createWindow(option, defaultUrl) {
 
     // 监听窗口创建完成事件
 
-    app.on('browser-window-created', function(event, window) {})
+    app.on('browser-window-created', function (event, window) {
+    })
 
     return mainWindow
 }

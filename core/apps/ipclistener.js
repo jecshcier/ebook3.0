@@ -18,6 +18,7 @@ const db = new sqlite3.Database(config.dbUrl);
 const uuid = require('uuid')
 const moment = require('moment');
 const md5File = require('md5-file')
+const child = require('child_process')
 
 let uploadArr = {};
 let downloadArr = {};
@@ -28,7 +29,7 @@ const appEvent = {
 
         // post请求
 
-        ipc.on('httpPost', function(event, data) {
+        ipc.on('httpPost', function (event, data) {
             let info = {
                 flag: false,
                 message: '',
@@ -54,7 +55,7 @@ const appEvent = {
 
         // get请求
 
-        ipc.on('httpGet', function(event, data) {
+        ipc.on('httpGet', function (event, data) {
             let info = {
                 flag: false,
                 message: '',
@@ -78,7 +79,7 @@ const appEvent = {
 
         // get请求query方式
 
-        ipc.on('httpGet_Query', function(event, data) {
+        ipc.on('httpGet_Query', function (event, data) {
             let info = {
                 flag: false,
                 message: '',
@@ -103,7 +104,7 @@ const appEvent = {
 
         // 新建教学过程
 
-        ipc.on('addProcess', function(event, data) {
+        ipc.on('addProcess', function (event, data) {
             let info = {
                 flag: false,
                 message: '',
@@ -111,7 +112,7 @@ const appEvent = {
             }
             let pId = uuid.v4().replace(/-/g, '')
             let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-            db.serialize(function() {
+            db.serialize(function () {
                 let stmt = db.prepare("INSERT INTO teach_process (id,book_id,user_id,page_id,count,pos_x,pos_y,create_time,update_time) VALUES ($id,$book_id,$user_id,$page_id,$count,$pos_x,$pos_y,$create_time,$update_time)");
                 stmt.run({
                     $id: pId,
@@ -169,7 +170,7 @@ const appEvent = {
 
         // 更新教学过程
 
-        ipc.on('editProcess', function(event, data) {
+        ipc.on('editProcess', function (event, data) {
             let info = {
                 flag: false,
                 message: '',
@@ -177,7 +178,7 @@ const appEvent = {
             }
             let pId = uuid.v4().replace(/-/g, '')
             let currentTime = moment().format("YYYY-MM-DD HH:mm:ss");
-            db.serialize(function() {
+            db.serialize(function () {
                 if (data.data) {
                     let stmt = db.prepare("update teach_process set update_time = $update_time,pos_x = $pos_x,pos_y=$pos_y,count = $count where id = $id");
                     stmt.run({
@@ -525,7 +526,11 @@ const appEvent = {
             }
             let stringify = JSON.stringify(query);
             console.log(url + stringify);
-            request.post(url + stringify, (error, response, body) => {
+            request.post(url + stringify, {timeout: 5000}, (error, response, body) => {
+                if (error) {
+                    console.log("fail")
+                    return;
+                }
                 if (body) {
                     let result = JSON.parse(body)
                     console.log(result)
@@ -542,7 +547,7 @@ const appEvent = {
                         // 已下载的文件数
                         let tempNum = 0
                         // 确定开启的线程数
-                        let threadNum = 10
+                        let threadNum = 1
                         // 计时
                         let time = 0
                         let timer = setInterval(() => {
@@ -556,6 +561,14 @@ const appEvent = {
                         }
 
                         function downloadBooks(index, data) {
+                            if (fileArr.length === tempNum) {
+                                clearInterval(timer)
+                                console.log("教材下载完成")
+                                console.log("耗时" + (time / 1000).toFixed(2) + "秒")
+                                console.log("以下文件下载失败,请重试")
+                                console.log(errArr)
+                                return;
+                            }
                             if (!data[index]) {
                                 return;
                             }
@@ -565,60 +578,44 @@ const appEvent = {
                                 downloadThread(num, data[num].downloadUrl, filePath).then((body) => {
                                     console.log(tempNum / (fileArr.length - 1))
                                     console.log(body)
-                                    if (fileArr.length - 1 === tempNum) {
-                                        clearInterval(timer)
-                                        console.log("教材下载完成")
-                                        console.log("耗时" + (time / 1000).toFixed(2) + "秒")
-                                        if (errArr.length) {
-                                            console.log("以下文件下载失败,请重试")
-                                            console.log(errArr)
-                                            // errArrLen = errArr.length - 1;
-                                            // currentNum = 0;
-                                            // downloadThread(errArr[currentNum].downloadUrl,errArr[currentNum].path).then(()=>{
-                                            //     if (currentNum === errArrLen) {
-                                            //         console.log("重新下载成功");
-                                            //         return;
-                                            //     }
-                                            //     downloadThread(errArr[currentNum].downloadUrl,errArr[currentNum].path)
-                                            //     currentNum ++;
-                                            //
-                                            // }), (info)=>{
-                                            //     console.log("以下文件下载失败，请检查网络")
-                                            // })
-                                        }
-                                        return;
-                                    }
-                                    if (errArr.num) {
-                                        delete errArr.num
+                                    if (errArr[num]) {
+                                        delete errArr[num]
                                     }
                                     // num ++;
                                     num += threadNum;
                                     tempNum++;
                                     downloadBooks(num, data)
                                 }, (info) => {
-                                    if (!errArr.failNum) {
-                                        let failNum = info.id
-                                        info.count = 0;
+                                    let failNum = info.id
+                                    if (!errArr[failNum]) {
                                         console.log("任务" + failNum + "下载失败，准备重试……");
-                                        errArr.failNum = info;
+                                        errArr[failNum] = info;
+                                        errArr[failNum].count = 1;
                                         downloadBooks(failNum, data)
                                     }
                                     else {
-                                        info.count ++;
-                                        if (info.count > 3) {
+                                        //超过三次，跳过该文件
+                                        if (errArr[failNum].count > 2) {
                                             num += threadNum;
                                             tempNum++;
+                                            console.log("任务" + failNum + "下载失败");
                                             downloadBooks(num, data)
+                                        }
+                                        else {
+                                            errArr[failNum].count++;
+                                            console.log("任务" + failNum + "下载失败" + errArr[failNum].count + "次，准备重试……");
+                                            downloadBooks(failNum, data)
                                         }
                                     }
 
                                 })
-                            }, (err) => {})
+                            }, (err) => {
+                            })
                         }
 
                         function downloadThread(num, downloadUrl, path) {
                             return new Promise((resolve, reject) => {
-                                request(downloadUrl, (error, response, body) => {
+                                request(downloadUrl, {timeout: 5000}, (error, response, body) => {
                                     if (error) {
                                         console.log("错误" + num)
                                         let info = {
@@ -633,38 +630,6 @@ const appEvent = {
                                 }).pipe(fs.createWriteStream(path))
                             })
                         }
-
-                        // downloadBooks(fileArr)
-                        // function downloadBooks() {
-                        //     // if (!data[index]) {
-                        //     //     console.log("教材下载完成")
-                        //     //     return;
-                        //     // }
-                        //     let fileArrLen = fileArr.length - 1
-                        //     let downloadUrl = fileArr[fileArrLen].downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
-                        //     let filePath = config.bookUrl + downloadUrl
-                        //     fs.ensureFile(filePath).then(() => {
-                        //         downloadThread(fileArr[fileArrLen].downloadUrl, filePath).then((body) => {
-                        //             console.log(filePath + "下载")
-                        //             fileArr.pop()
-                        //             if (!fileArr.length) {
-                        //                 console.log("下载完成")
-                        //                 return;
-                        //             }
-                        //             downloadBooks(fileArr)
-                        //         }, (err) => {})
-                        //     }, (err) => {})
-                        // }
-                        //
-                        // function downloadThread(downloadUrl, path) {
-                        //     return new Promise((resolve, reject) => {
-                        //         request(downloadUrl, (error, response, body) => {
-                        //             resolve(path + "下载完成")
-                        //             // console.log(filePath + "下载完成");
-                        //         }).pipe(fs.createWriteStream(path))
-                        //     })
-                        // }
-
                     } else {
                         // err
                     }
@@ -672,36 +637,30 @@ const appEvent = {
                     // err
                 }
             })
-            // progressInt = setInterval(() => {
-            //     let progressObj = {
-            //         'id': download_id,
-            //         'progress': progress
-            //     }
-            //     // event.sender.send('downloadProgress', JSON.stringify(progressObj));
-            // }, 100)
+
         })
 
     },
     windowListener: (win) => { // 程序最小化
 
-        ipc.on('minimize', function(event) {
+        ipc.on('minimize', function (event) {
             win.minimize()
             console.log("ok")
         })
 
         // 程序最大化
 
-        ipc.on('Maximization', function(event) {
+        ipc.on('Maximization', function (event) {
             win.maximize()
         })
 
         // 退出程序
-        ipc.on('exit', function(event) {
+        ipc.on('exit', function (event) {
             app.quit();
         })
 
         // 全屏
-        ipc.on('fullscreen', function(event) {
+        ipc.on('fullscreen', function (event) {
             if (!win.isFullScreen()) {
                 win.setFullScreen(true)
             } else {
@@ -710,12 +669,12 @@ const appEvent = {
         })
 
         // 开发者工具
-        ipc.on('developTools', function(event) {
+        ipc.on('developTools', function (event) {
             win.webContents.toggleDevTools()
 
         })
 
-        ipc.on('stopUpload', function(event, data) {
+        ipc.on('stopUpload', function (event, data) {
             // console.log(uploadArr[id]);
             if (uploadArr[data.id]) {
                 uploadArr[data.id].req.abort();
@@ -725,7 +684,7 @@ const appEvent = {
             }
         })
         //
-        ipc.on('stopDownload', function(event, data) {
+        ipc.on('stopDownload', function (event, data) {
             // console.log(uploadArr[id]);
             if (downloadArr[data.id]) {
                 downloadArr[data.id].req.abort();
@@ -817,7 +776,7 @@ const appEvent = {
         })
 
         // 主动下载文件监听
-        ipc.on('downloadFile', function(event, data) {
+        ipc.on('downloadFile', function (event, data) {
             if (!data.url) {
                 return false;
             }
@@ -842,7 +801,7 @@ const appEvent = {
 
         // 上传文件监听
 
-        ipc.on('uploadFiles', function(event, data) {
+        ipc.on('uploadFiles', function (event, data) {
             dialog.showOpenDialog({
                 properties: ['openFile', 'multiSelections']
             }, (files) => {
