@@ -25,13 +25,13 @@
 </button>
 <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
 <button onclick="exportProcess()">导出教学过程</button>
-<button onclick="downloadBooks('jckj')">下载图书</button>
+<button onclick="downloadBooks('kwhjj')">下载教材</button>
 <input class="pid" type="text">
 <button onclick="killProcess($('.pid').val())">杀进程</button>
-<button onclick="downloadBooks('jckj')">下载图书</button>
-<button onclick="deleteBook('jckj')">删除图书</button>
-<button onclick="downloadBooks('jckj')">下载图书</button>
-<button onclick="downloadBooks('jckj')">下载图书</button>
+<button onclick="getBookList(['jckj','jjdy','kwhjj'])">获取教材列表</button>
+<button onclick="deleteBook('kwhjj')">删除教材</button>
+<button onclick="downloadBooks('jckj')">下载教材</button>
+<button onclick="downloadBooks('jckj')">下载教材</button>
 <button onclick="max()">最大化</button>
 <button onclick="min()">最小化</button>
 <button onclick="exitApp()">关闭</button>
@@ -47,8 +47,9 @@
         }
     })">上传文件测试
 </button>
-<button class="stopUpload" type="button" name="button">停止上传</button>
-<button class="stopDownload" type="button" name="button">停止下载</button>
+<!--方法弃用-->
+<!--<button class="stopUpload" type="button" name="button">停止上传</button>-->
+<!--<button class="stopDownload" type="button" name="button">停止下载</button>-->
 <a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C">自动下载测试</a>
 <a target="_blank"
    href="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264">自动下载测试2</a>
@@ -203,8 +204,8 @@
         if (obj.flag === 'start') {
             $("body").append('<p>当前子进程:' + obj.pid + '</p>');
         }
-
     })
+
     function deleteBook(isbn) {
         app.send('deleteBook', {
             isbn: isbn,
@@ -216,6 +217,7 @@
         })
     }
 
+    //kill进程
     function killProcess(pid) {
         app.send('killProcess', {
             pid: pid,
@@ -226,8 +228,17 @@
         })
     }
 
+//    获取教材列表
+    function getBookList(bookArr) {
+        app.send('getBookList', {
+            bookArr: bookArr,
+            callback: 'getBookListCallback'
+        })
+        app.once('getBookListCallback', function (event, mess) {
+            alert(mess)
+        })
+    }
     // 删除教学过程
-
     function deleteProcess() {
         app.send('deleteProcess', {
             process_id: 'c543cbca28c94b69859dd81f64c09e09',
@@ -244,6 +255,8 @@
             loadProcessFiles(el);
         })
     }
+
+    //根据教学过程读取教学过程的文件
 
     function loadProcessFiles(id) {
         app.send('loadProcessFiles', {
@@ -323,6 +336,7 @@
         })
     }
 
+    // get_query接口
     function get2() {
         app.send('httpGet_Query', {
             url: 'http://192.168.109.229:8080//skydisk-ms/api/dirList.html',
@@ -368,35 +382,35 @@
         app.send('developTools')
     }
 
-    $(".stopUpload").click(function (event) {
-        var id = $(this).attr('uploadid');
-        // 停止上传接口
-        app.send('stopUpload', {
-            id: id,
-            callback: 'stopUploadCallback'
-        })
-        app.once('stopUploadCallback', function (event, mess) {
-            alert("停止上传" + mess)
-        })
-    });
-    $(".stopDownload").click(function (event) {
-        var id = $(this).attr('downloadid');
-        // 停止下载接口
-        app.send('stopDownload', {
-            id: id,
-            callback: 'stopDownloadCallback'
-        })
-        app.once('stopDownloadCallback', function (event, mess) {
-            alert("停止下载" + mess)
-        })
-    });
+    //    $(".stopUpload").click(function (event) {
+    //        var id = $(this).attr('uploadid');
+    //        // 停止上传接口
+    //        app.send('stopUpload', {
+    //            id: id,
+    //            callback: 'stopUploadCallback'
+    //        })
+    //        app.once('stopUploadCallback', function (event, mess) {
+    //            alert("停止上传" + mess)
+    //        })
+    //    });
+    //    $(".stopDownload").click(function (event) {
+    //        var id = $(this).attr('downloadid');
+    //        // 停止下载接口
+    //        app.send('stopDownload', {
+    //            id: id,
+    //            callback: 'stopDownloadCallback'
+    //        })
+    //        app.once('stopDownloadCallback', function (event, mess) {
+    //            alert("停止下载" + mess)
+    //        })
+    //    });
     $(".download").click(function (event) {
         var url = $(this).attr('url');
         // 下载固定地址的文件接口
         var data = {
             url: url,
             dialog: false,
-            newName: 'aaa.a'
+            newName: 'test.zip'
         }
         app.send('downloadFile', data)
     });
@@ -413,6 +427,7 @@
         console.log(obj.id)
         console.log("开始下载");
         $(".stopDownload").attr('downloadid', obj.id);
+        $("body").append('<p>当前子进程:' + obj.id + '</p>');
     })
 
 
@@ -477,6 +492,26 @@
 
     // 上传、下载相关接口-----》
     // 其中，返回的message中有相应的itemID，可根据相应的id设定相应的进度条、停止等控制
+    //    下载模块返回值
+    //    let startObj = {
+    //        'id': p.pid,
+    //        'itemName': m.itemName,
+    //        'message': m.message
+    //    }
+    //    let stopObj = {
+    //        'id': p.pid,
+    //        'itemName': m.itemName,
+    //        'message': m.message
+    //    }
+    //    let successObj = {
+    //        'id': p.pid,
+    //        'itemName': m.itemName,
+    //        'message': m.message
+    //    }
+    //    let progressObj = {
+    //        'id': p.pid,
+    //        'progress': m.data
+    //    }
     // app.on('uploadProgress', uploadProgress)
     // app.on('uploadStart', uploadStart)
     // app.on('uploadSuccess', uploadSuccess)

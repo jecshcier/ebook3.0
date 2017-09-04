@@ -519,7 +519,7 @@ const appEvent = {
                 data: null,
                 pid: null
             }
-            let url = "http://es.tes-sys.com/ebook_services/update/bymd5str.html?jsonstr="
+            let url = config.serverUrl + "/update/bymd5str.html?jsonstr="
             let query = {
                 count: 0,
                 isbn: bookIsbn,
@@ -606,6 +606,7 @@ const appEvent = {
             info.message = "成功！"
             event.sender.send(data.callback, JSON.stringify(info));
         })
+
         ipc.on('deleteBook', (event, data) => {
             "use strict";
             let info = {
@@ -627,6 +628,39 @@ const appEvent = {
                 info.message = "删除失败" + err
                 event.sender.send(data.callback, JSON.stringify(info));
             })
+        })
+
+
+        ipc.on('getBookList', (event, data) => {
+            "use strict";
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            let bookArr = data.bookArr
+            let listLen = data.bookArr.length
+            let myBookArr = [];
+            bookArr.forEach((el,index)=>{
+                let bookPath = path.resolve(__dirname, config.bookUrl + '/' + el)
+                fs.pathExists(bookPath).then((exists)=>{
+                    if(exists) {
+                        myBookArr.push(bookArr[index])
+                    }
+                    if (index === listLen - 1)
+                    {
+                        info.flag = true
+                        info.message = "获取成功"
+                        info.data = myBookArr
+                        event.sender.send(data.callback, JSON.stringify(info));
+                    }
+                },(err)=>{
+                    info.message = "获取失败" + err
+                    event.sender.send(data.callback, JSON.stringify(info));
+                    return false;
+                })
+            })
+
         })
 
 
@@ -687,86 +721,115 @@ const appEvent = {
         // 监听window默认下载事件
         win.webContents.session.on('will-download', (event, item, webContents) => {
             event.preventDefault();
-            var itemName = item.getFilename();
-            var itemUrl = item.getURL();
-            var itemSize = item.getTotalBytes();
+            let itemName = item.getFilename();
+            let itemUrl = item.getURL();
+            let itemSize = item.getTotalBytes();
+
+            let p = child.fork('./apps/download.js', [], {})
+
+            p.on('message', function (m) {
+                console.log(m)
+                if (m.flag === "start") {
+                    let startObj = {
+                        'id': p.pid,
+                        'itemName': itemName,
+                        'message': m.message
+                    }
+                    win.webContents.send('downloadStart', JSON.stringify(startObj));
+                }
+                else if (m.flag === "fail") {
+                    let stopObj = {
+                        'id': p.pid,
+                        'itemName': itemName,
+                        'message': m.message
+                    }
+                    win.webContents.send('downloadFailed', JSON.stringify(stopObj));
+                }
+                else if (m.flag === "success") {
+                    let successObj = {
+                        'id': p.pid,
+                        'itemName': itemName,
+                        'message': m.message
+                    }
+                    win.webContents.send('downloadSuccess', JSON.stringify(successObj))
+                }
+                else if (m.flag === "progress") {
+                    let progressObj = {
+                        'id': p.pid,
+                        'progress': m.data
+                    }
+                    win.webContents.send('downloadProgress', JSON.stringify(progressObj));
+                }
+            })
+
+            p.on('close', (code) => {
+                console.log("process EXIT code:" + code)
+            })
+
             // 设置下载路径
             dialog.showOpenDialog({
                 'properties': ['openDirectory', 'createDirectory']
             }, (dirPath) => {
                 if (dirPath) {
                     let filePath = path.resolve(__dirname, dirPath[0] + '/' + itemName);
-                    let download_id = downloadNum;
-                    let progress;
-                    let progressInt;
-                    // 文件重命名
-                    fileAutoRename(dirPath, filePath, itemName, 0, (newFilePath) => {
-                        let writerStream = fs.createWriteStream(newFilePath)
-                        writerStream.on('error', (err) => {
-                            let stopObj = {
-                                'id': download_id,
-                                'itemName': itemName,
-                                'message': "文件写入失败"
-                            }
-                            delete downloadArr[download_id];
-                            win.webContents.send('downloadFailed', JSON.stringify(stopObj));
-                        });
-                        let fileSize = 0;
-                        let startObj = {
-                            'id': download_id,
-                            'itemName': itemName,
-                            "message": "开始下载"
-                        }
-                        win.webContents.send('downloadStart', JSON.stringify(startObj));
-                        downloadArr[download_id] = request(itemUrl, (error, response, body) => {
-                            if (progressInt) {
-                                clearInterval(progressInt);
-                            }
-                            if (!error) {
-                                let successObj = {
-                                    'id': download_id,
-                                    'itemName': itemName,
-                                    'message': "下载成功"
-                                }
-                                delete downloadArr[download_id];
-                                win.webContents.send('downloadSuccess', JSON.stringify(successObj));
-                            } else {
-                                let stopObj = {
-                                    'id': download_id,
-                                    'itemName': itemName,
-                                    'message': "网络连接失败"
-                                }
-                                delete downloadArr[download_id];
-                                win.webContents.send('downloadFailed', JSON.stringify(stopObj));
-                            }
-                            writerStream.end();
-                        }).on('response', (res) => {
-                            console.log(res.headers['content-disposition'].replace(/attachment; filename=/, ''))
-                        }).on('data', (data) => {
-                            // decompressed data as it is received
-                            writerStream.write(data);
-                            fileSize += data.length;
-                            progress = fileSize / itemSize
-                            progress = (progress * 100).toFixed(2)
-
-                        })
-                        progressInt = setInterval(() => {
-                            let progressObj = {
-                                'id': download_id,
-                                'progress': progress
-                            }
-                            win.webContents.send('downloadProgress', JSON.stringify(progressObj));
-                        }, 500)
+                    p.send({
+                        type: 0,
+                        itemUrl: itemUrl,
+                        dirPath: dirPath,
+                        filePath: filePath,
+                        itemName: itemName,
+                        itemSize: itemSize
                     })
+
                 } else {
                     console.log("用户取消下载")
                 }
-                downloadNum++;
             })
         })
 
         // 主动下载文件监听
         ipc.on('downloadFile', function (event, data) {
+            let p = child.fork('./apps/download.js', [], {})
+
+            p.on('message', function (m) {
+                console.log(m)
+                if (m.flag === "start") {
+                    let startObj = {
+                        'id': p.pid,
+                        'itemName': m.itemName,
+                        'message': m.message
+                    }
+                    event.sender.send('downloadStart', JSON.stringify(startObj));
+                }
+                else if (m.flag === "fail") {
+                    let stopObj = {
+                        'id': p.pid,
+                        'itemName': m.itemName,
+                        'message': m.message
+                    }
+                    event.sender.send('downloadFailed', JSON.stringify(stopObj));
+                }
+                else if (m.flag === "success") {
+                    let successObj = {
+                        'id': p.pid,
+                        'itemName': m.itemName,
+                        'message': m.message
+                    }
+                    event.sender.send('downloadSuccess', JSON.stringify(successObj))
+                }
+                else if (m.flag === "progress") {
+                    let progressObj = {
+                        'id': p.pid,
+                        'progress': m.data
+                    }
+                    event.sender.send('downloadProgress', JSON.stringify(progressObj));
+                }
+            })
+
+            p.on('close', (code) => {
+                console.log("process EXIT code:" + code)
+            })
+
             if (!data.url) {
                 return false;
             }
@@ -775,22 +838,29 @@ const appEvent = {
                     'properties': ['openDirectory', 'createDirectory']
                 }, (dirPath) => {
                     if (dirPath) {
-                        startDownload(data.url, data.newName, dirPath[0], win, event)
+                        p.send({
+                            type: 1,
+                            url: data.url,
+                            newName: data.newName,
+                            dirPath: dirPath[0]
+                        })
                     } else {
                         console.log("用户取消下载")
                     }
-                    downloadNum++;
                 })
             } else {
-                startDownload(data.url, data.newName, path.resolve(__dirname, config.downloadPath), win, event)
-                downloadNum++;
+                p.send({
+                    type: 1,
+                    url: data.url,
+                    newName: data.newName,
+                    dirPath: path.resolve(__dirname, config.downloadPath)
+                })
             }
             // 设置下载路径
 
         })
 
         // 上传文件监听
-
         ipc.on('uploadFiles', function (event, data) {
             dialog.showOpenDialog({
                 properties: ['openFile', 'multiSelections']
@@ -869,100 +939,6 @@ const fileDelete = (filePath) => {
     }, () => {
         console.log("删除失败");
     })
-}
-
-// 重名检测
-const fileAutoRename = (dirPath, filePath, itemName, num, callback) => {
-    if (!num) {
-        num = 0;
-    }
-    fs.pathExists(filePath).then((exists) => {
-        if (exists) {
-            // console.log(filePath);
-            num++;
-            filePath = path.resolve(__dirname, dirPath + '/' + '(' + num + ')' + itemName)
-            fileAutoRename(dirPath, filePath, itemName, num, callback);
-        } else {
-            if (callback) {
-                callback(filePath)
-            }
-        }
-    })
-}
-
-const startDownload = (url, newName, dirPath, win, event) => {
-    let download_id = downloadNum;
-    let itemName = '';
-    let writerStream;
-    let fileSize = 0;
-    let itemSize = 0;
-    let filePath = '';
-    let progress
-    let progressInt
-    downloadArr[download_id] = request(url, (error, response, body) => {
-        if (progressInt) {
-            clearInterval(progressInt);
-        }
-        if (!error) {
-            writerStream.end();
-            let successObj = {
-                'id': download_id,
-                'itemName': itemName,
-                'message': "下载成功"
-            }
-            if (newName) {
-                let newFileName = path.resolve(__dirname, dirPath + '/' + newName)
-                fs.renameSync(filePath, newFileName)
-                event.sender.send('downloadSuccess', JSON.stringify(successObj));
-            } else {
-                delete downloadArr[download_id];
-                event.sender.send('downloadSuccess', JSON.stringify(successObj));
-            }
-        } else {
-            let stopObj = {
-                'id': download_id,
-                'itemName': itemName,
-                'message': "网络连接失败"
-            }
-            delete downloadArr[download_id];
-            event.sender.send('downloadFailed', JSON.stringify(stopObj));
-        }
-
-    }).on('data', (data) => {
-        // decompressed data as it is received
-        writerStream.write(data);
-        fileSize += data.length;
-        progress = fileSize / itemSize
-        progress = (progress * 100).toFixed(2)
-
-    }).on('response', (res) => {
-        itemName = res.headers['content-disposition'].replace(/attachment; filename=/, '');
-        itemSize = parseInt(res.headers['content-length'])
-        filePath = path.resolve(__dirname, dirPath + '/' + itemName);
-        writerStream = fs.createWriteStream(filePath)
-        writerStream.on('error', (err) => {
-            let stopObj = {
-                'id': download_id,
-                'itemName': itemName,
-                'message': "文件写入失败"
-            }
-            delete downloadArr[download_id];
-            event.sender.send('downloadFailed', JSON.stringify(stopObj));
-        });
-        let startObj = {
-            'id': download_id,
-            'itemName': itemName,
-            "message": "开始下载"
-        }
-        event.sender.send('downloadStart', JSON.stringify(startObj));
-    })
-    progressInt = setInterval(() => {
-        let progressObj = {
-            'id': download_id,
-            'progress': progress
-        }
-        event.sender.send('downloadProgress', JSON.stringify(progressObj));
-    }, 100)
 }
 
 module.exports = appEvent

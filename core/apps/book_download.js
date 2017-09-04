@@ -46,7 +46,6 @@ const downloadBooks = (index, data) => {
             if (errArr[num]) {
                 delete errArr[num]
             }
-            // num ++;
             num += threadNum;
             tempNum++;
             downloadBooks(num, data)
@@ -65,10 +64,6 @@ const downloadBooks = (index, data) => {
                         id: 'kill'
                     }
                     process.send(mess)
-                    // num += threadNum;
-                    // tempNum++;
-                    // console.log("任务" + failNum + "下载失败");
-                    // downloadBooks(num, data)
                 }
                 else {
                     console.log("任务" + failNum + "下载失败" + errArr[failNum].count + "次，准备重试……");
