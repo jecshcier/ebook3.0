@@ -9,44 +9,58 @@
 </head>
 
 <body>
-    <h1>ebook3.0</h1>
-    <h4>Shayne C出品</h4>
-    <button onclick="post()">post请求</button>
-    <button onclick="get()">get请求</button>
-    <button onclick="get2()">网盘get请求</button>
-    <button onclick="addProcess()">新建教学过程</button>
-    <button onclick="editProcess()">编辑教学过程</button>
-    <button onclick="fileIsExsit()">查找教学过程文件是否存在</button>
-    <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
-    <button onclick="loadProcess()">加载教学过程</button>
-    <button onclick="deleteProcess()">删除教学过程</button>
-    <button onclick="loadProcessFilesArr(['70840e2ac87f4440b61fab3e908f3851','74d4503e65c3482eab3c79eda78cb2e6','bd4742f67f38450788943929cca5f85a','d4def94707c74d9e9a04ddc6a8307902'])">加载教学过程中的文件</button>
-    <button onclick="fileIsDownloaded()">更新文件下载状态位</button>
-    <button onclick="exportProcess()">导出教学过程</button>
-    <button onclick="downloadBooks('jckj')">下载图书</button>
-    <button onclick="max()">最大化</button>
-    <button onclick="min()">最小化</button>
-    <button onclick="exitApp()">关闭</button>
-    <button onclick="fullscreen()">全屏（F11）</button>
-    <button onclick="developTools()">开发者工具（ctrl + shift + i）</button>
-    <input type="text" name="" value="">
-    <button type="button" name="button" onclick="uploadFiles({
+<h1>ebook3.0</h1>
+<h4>Shayne C出品</h4>
+<button onclick="post()">post请求</button>
+<button onclick="get()">get请求</button>
+<button onclick="get2()">网盘get请求</button>
+<button onclick="addProcess()">新建教学过程</button>
+<button onclick="editProcess()">编辑教学过程</button>
+<button onclick="fileIsExsit()">查找教学过程文件是否存在</button>
+<button onclick="fileIsDownloaded()">更新文件下载状态位</button>
+<button onclick="loadProcess()">加载教学过程</button>
+<button onclick="deleteProcess()">删除教学过程</button>
+<button onclick="loadProcessFilesArr(['70840e2ac87f4440b61fab3e908f3851','74d4503e65c3482eab3c79eda78cb2e6','bd4742f67f38450788943929cca5f85a','d4def94707c74d9e9a04ddc6a8307902'])">
+    加载教学过程中的文件
+</button>
+<button onclick="fileIsDownloaded()">更新文件下载状态位</button>
+<button onclick="exportProcess()">导出教学过程</button>
+<button onclick="downloadBooks('jckj')">下载图书</button>
+<input class="pid" type="text">
+<button onclick="killProcess($('.pid').val())">杀进程</button>
+<button onclick="downloadBooks('jckj')">下载图书</button>
+<button onclick="deleteBook('jckj')">删除图书</button>
+<button onclick="downloadBooks('jckj')">下载图书</button>
+<button onclick="downloadBooks('jckj')">下载图书</button>
+<button onclick="max()">最大化</button>
+<button onclick="min()">最小化</button>
+<button onclick="exitApp()">关闭</button>
+<button onclick="fullscreen()">全屏（F11）</button>
+<button onclick="developTools()">开发者工具（ctrl + shift + i）</button>
+<input type="text" name="" value="">
+<button type="button" name="button" onclick="uploadFiles({
         'url':'http://192.168.110.141:8086/ecourse-ms/api/fileUpload.html',
         'data':{
             'files': 'uploadFile',
             'url': '/ebookV3',
             'createUser': '9AE969E5687D99F7664C140AA4C73B48'
         }
-    })">上传文件测试</button>
-    <button class="stopUpload" type="button" name="button">停止上传</button>
-    <button class="stopDownload" type="button" name="button">停止下载</button>
-    <a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C">自动下载测试</a>
-    <a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264">自动下载测试2</a>
-    <button class="download" type="button" url="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264" name="button">手动下载测试</button>
-    <button class="download" type="button" url="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C" name="button">手动下载测试</button>
+    })">上传文件测试
+</button>
+<button class="stopUpload" type="button" name="button">停止上传</button>
+<button class="stopDownload" type="button" name="button">停止下载</button>
+<a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C">自动下载测试</a>
+<a target="_blank"
+   href="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264">自动下载测试2</a>
+<button class="download" type="button"
+        url="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264" name="button">手动下载测试
+</button>
+<button class="download" type="button"
+        url="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C" name="button">手动下载测试
+</button>
 
-    <p>下载进度：</p>
-    <div class="progress" style="height:10px;background:#47f3fe;width:0px;margin-top:20px"><span></span></div>
+<p>下载进度：</p>
+<div class="progress" style="height:10px;background:#47f3fe;width:0px;margin-top:20px"><span></span></div>
 </body>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
@@ -54,6 +68,7 @@
     function uploadFiles(data) {
         app.send('uploadFiles', data)
     }
+
     // post请求接口
     function post() {
         app.send('httpPost', {
@@ -64,10 +79,11 @@
             },
             callback: 'httpPostCallback'
         })
-        app.once('httpPostCallback', function(event, mess) {
+        app.once('httpPostCallback', function (event, mess) {
             alert('post请求成功\n' + mess)
         })
     }
+
     // 新建教学过程
     function addProcess() {
         app.send('addProcess', {
@@ -85,121 +101,156 @@
                 'file_name': '测试',
                 'ext_name': '测试',
                 'edit_name': '测试',
-                'convert_name':'test.html'
+                'convert_name': 'test.html'
             }, {
                 'file_id': '测试',
                 'detail_index': 0,
                 'file_name': '测试',
                 'ext_name': '测试',
                 'edit_name': '测试',
-                'convert_name':'test.html'
+                'convert_name': 'test.html'
             }, {
                 'file_id': '测试',
                 'detail_index': 0,
                 'file_name': '测试',
                 'ext_name': '测试',
                 'edit_name': '测试',
-                'convert_name':'test.html'
+                'convert_name': 'test.html'
             }, {
                 'file_id': '测试',
                 'detail_index': 0,
                 'file_name': '测试',
                 'ext_name': '测试',
                 'edit_name': '测试',
-                'convert_name':'test.html'
+                'convert_name': 'test.html'
             }, {
                 'file_id': '测试',
                 'detail_index': 0,
                 'file_name': '测试',
                 'ext_name': '测试',
                 'edit_name': '测试',
-                'convert_name':'test.html'
+                'convert_name': 'test.html'
             }],
             callback: 'addProcessCallback'
         })
-        app.once('addProcessCallback', function(event, mess) {
+        app.once('addProcessCallback', function (event, mess) {
             alert('新建教学过程请求成功\n' + mess)
         })
     }
 
-    function fileIsExsit(){
+    function fileIsExsit() {
         app.send('fileIsExsit', {
-            fileName:'aaa.a',
+            fileName: 'aaa.a',
             callback: 'fileIsExsitCallback'
         })
-        app.once('fileIsExsitCallback', function(event, mess) {
+        app.once('fileIsExsitCallback', function (event, mess) {
             alert('查找文件id请求成功\n' + mess)
         })
     }
 
-    function fileIsDownloaded(){
+    function fileIsDownloaded() {
         app.send('fileIsDownloaded', {
-            file_id:'编辑教学过程测试',
+            file_id: '编辑教学过程测试',
             callback: 'fileIsDownloadedCallback'
         })
-        app.once('fileIsDownloadedCallback', function(event, mess) {
+        app.once('fileIsDownloadedCallback', function (event, mess) {
             alert('更新文件下载状态成功\n' + mess)
         })
     }
-    function loadProcess(){
+
+    function loadProcess() {
         app.send('loadProcess', {
-            data:{
+            data: {
                 'book_id': 'shuxue',
                 'user_id': 'chenshenhao'
             },
             callback: 'loadProcessCallback'
         })
-        app.once('loadProcessCallback', function(event, mess) {
+        app.once('loadProcessCallback', function (event, mess) {
             alert('获取教学过程成功\n' + mess)
         })
     }
 
-    function exportProcess(){
+    function exportProcess() {
         app.send('exportProcess', {
-            data:{
+            data: {
                 'book_id': 'shuxue',
                 'user_id': 'chenshenhao'
             },
             callback: 'exportProcessCallback'
         })
-        app.once('exportProcessCallback', function(event, mess) {
+        app.once('exportProcessCallback', function (event, mess) {
             alert('导出教学过程成功\n' + mess)
         })
     }
-    function downloadBooks(isbn){
+
+    function downloadBooks(isbn) {
         app.send('downloadBooks', {
-            isbn:isbn,
+            isbn: isbn,
             callback: 'downloadBooksCallback'
         })
-        app.once('downloadBooksCallback', function(event, mess) {
-            alert('下载成功\n' + mess)
+    }
+
+    app.on('downloadBooksCallback', function (event, mess) {
+//            let info = {
+//                flag: null,//flag='start'/'success'/'fail'/'progress'四种形式
+//                message: '',
+//                data: null,
+//                pid:null//进程的id，可调用killProcess方法杀死进程
+//            }
+        var obj = JSON.parse(mess)
+
+        if (obj.flag === 'start') {
+            $("body").append('<p>当前子进程:' + obj.pid + '</p>');
+        }
+
+    })
+    function deleteBook(isbn) {
+        app.send('deleteBook', {
+            isbn: isbn,
+            callback: 'deleteBookCallback'
+        })
+        app.once('deleteBookCallback', function (event, mess) {
+            var obj = JSON.parse(mess)
+            alert(mess)
+        })
+    }
+
+    function killProcess(pid) {
+        app.send('killProcess', {
+            pid: pid,
+            callback: 'killProcessCallback'
+        })
+        app.once('killProcessCallback', function (event, mess) {
+            alert(mess)
         })
     }
 
     // 删除教学过程
 
-    function deleteProcess(){
+    function deleteProcess() {
         app.send('deleteProcess', {
-            process_id:'c543cbca28c94b69859dd81f64c09e09',
+            process_id: 'c543cbca28c94b69859dd81f64c09e09',
             callback: 'deleteProcesssCallback'
         })
-        app.once('deleteProcesssCallback', function(event, mess) {
+        app.once('deleteProcesssCallback', function (event, mess) {
             alert('删除教学过程成功\n' + mess)
         })
     }
 
     //加载教学过程的文件
-    function loadProcessFilesArr(arr){
-        arr.forEach(function(el,index){
+    function loadProcessFilesArr(arr) {
+        arr.forEach(function (el, index) {
             loadProcessFiles(el);
         })
     }
-    function loadProcessFiles(id){
+
+    function loadProcessFiles(id) {
         app.send('loadProcessFiles', {
-            process_id:id,
+            process_id: id,
             callback: 'loadProcessFilesCallback' + id
         })
-        app.once('loadProcessFilesCallback' + id, function(event, mess) {
+        app.once('loadProcessFilesCallback' + id, function (event, mess) {
             console.log(mess)
         })
     }
@@ -209,9 +260,9 @@
         app.send('editProcess', {
             info: {
                 'id': '70840e2ac87f4440b61fab3e908f3851',
-                'pos_x':121,
-                'pos_y':333,
-                'count':4,
+                'pos_x': 121,
+                'pos_y': 333,
+                'count': 4,
             },
             data: [{
                 'file_id': '编辑教学过程测试',
@@ -219,44 +270,44 @@
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
-                'convert_name':'hello.html',
-                'isDownload':0
+                'convert_name': 'hello.html',
+                'isDownload': 0
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
-                'convert_name':'hello.html',
-                'isDownload':0
+                'convert_name': 'hello.html',
+                'isDownload': 0
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
-                'convert_name':'hello.html',
-                'isDownload':1
+                'convert_name': 'hello.html',
+                'isDownload': 1
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
-                'convert_name':'hello.html',
-                'isDownload':0
+                'convert_name': 'hello.html',
+                'isDownload': 0
             }, {
                 'file_id': '编辑教学过程测试',
                 'detail_index': 0,
                 'file_name': '编辑教学过程测试',
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
-                'convert_name':'hello.html',
-                'isDownload':1
+                'convert_name': 'hello.html',
+                'isDownload': 1
             }],
             callback: 'editProcessCallback'
         })
-        app.once('editProcessCallback', function(event, mess) {
+        app.once('editProcessCallback', function (event, mess) {
             alert('编辑教学过程请求成功\n' + mess)
         })
     }
@@ -267,7 +318,7 @@
             url: 'http://es.tes-sys.com/weare/getWholeProjectTeam',
             callback: 'httpGetCallback'
         })
-        app.once('httpGetCallback', function(event, mess) {
+        app.once('httpGetCallback', function (event, mess) {
             alert('get请求成功\n' + mess)
         })
     }
@@ -287,60 +338,65 @@
             },
             callback: 'httpGetCallback'
         })
-        app.once('httpGetCallback', function(event, mess) {
+        app.once('httpGetCallback', function (event, mess) {
             alert('get请求成功\n' + JSON.parse(mess))
         })
     }
+
     // 最小化接口
     function min() {
         app.send('minimize')
     }
+
     // 最大化接口
     function max() {
         app.send('Maximization')
     }
+
     // 退出app接口
     function exitApp() {
         app.send('exit')
     }
+
     // 全屏接口
     function fullscreen() {
         app.send('fullscreen')
     }
+
     // 开发者工具接口
     function developTools() {
         app.send('developTools')
     }
 
-    $(".stopUpload").click(function(event) {
+    $(".stopUpload").click(function (event) {
         var id = $(this).attr('uploadid');
         // 停止上传接口
         app.send('stopUpload', {
             id: id,
             callback: 'stopUploadCallback'
         })
-        app.once('stopUploadCallback', function(event, mess) {
+        app.once('stopUploadCallback', function (event, mess) {
             alert("停止上传" + mess)
         })
     });
-    $(".stopDownload").click(function(event) {
+    $(".stopDownload").click(function (event) {
         var id = $(this).attr('downloadid');
         // 停止下载接口
         app.send('stopDownload', {
             id: id,
             callback: 'stopDownloadCallback'
         })
-        app.once('stopDownloadCallback', function(event, mess) {
+        app.once('stopDownloadCallback', function (event, mess) {
             alert("停止下载" + mess)
         })
     });
-    $(".download").click(function(event) {
+    $(".download").click(function (event) {
         var url = $(this).attr('url');
         // 下载固定地址的文件接口
         var data = {
-            url:url,
-            dialog:false,
-            newName:'aaa.a'
+            url: url,
+            dialog: false,
+            newName: 'aaa.a'
         }
         app.send('downloadFile', data)
     });

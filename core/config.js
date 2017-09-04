@@ -14,7 +14,7 @@ const config = {
     "staticUrl":process.cwd() + "/../html/index.html",
     "dbUrl":process.cwd() + "/../userData/user.db",
     "downloadPath":process.cwd() + "/../userData",
-    "bookUrl":process.cwd() + "/../html/books"
+    "bookUrl":process.cwd() + "/../html/books",
 }
 
 module.exports = config

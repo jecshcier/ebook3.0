@@ -512,133 +512,123 @@ const appEvent = {
         })
 
         ipc.on('downloadBooks', (event, data) => {
-            console.log(data)
+            let bookIsbn = data.isbn
+            let info = {
+                flag: null,
+                message: '',
+                data: null,
+                pid: null
+            }
+            let url = "http://es.tes-sys.com/ebook_services/update/bymd5str.html?jsonstr="
+            let query = {
+                count: 0,
+                isbn: bookIsbn,
+                data: []
+            }
+            let stringify = JSON.stringify(query);
+            console.log(url + stringify);
+            request.post(url + stringify, {timeout: 30000}, (error, response, body) => {
+                if (error) {
+                    info.message = "服务器连接失败"
+                    event.sender.send(data.callback, JSON.stringify(info));
+                    return;
+                }
+                if (body) {
+                    console.log(body)
+                    let result = JSON.parse(body)
+                    // console.log(result)
+                    if (result.stateCode === '100') {
+                        //真.多线程下载 --->
+                        let fileArr = result.data;
+                        //这里丢一个线程出去处理
+                        let p = child.fork('./apps/book_download.js', [], {})
+                        info.flag = 'start'
+                        info.message = "开始下载"
+                        info.pid = p.pid;
+                        event.sender.send(data.callback, JSON.stringify(info));
+                        p.send({bookIsbn: bookIsbn, fileArr: fileArr})
+                        p.on('message', function (m) {
+                            if (m.id === 'kill') {
+                                process.kill(p.pid)
+                                console.log("线程结束")
+                                info.flag = 'fail'
+                                info.message = "下载失败"
+                                event.sender.send(data.callback, JSON.stringify(info));
+                            }
+                            else if (m.id === 'ok') {
+                                info.flag = 'success'
+                                info.message = "下载成功"
+                                process.kill(p.pid)
+                                event.sender.send(data.callback, JSON.stringify(info));
+                            } else if (m.id === 'progress') {
+                                console.log('------->')
+                                console.log(m.data)
+                                info.flag = "progress"
+                                info.message = ''
+                                info.data = m.data
+                                event.sender.send(data.callback, JSON.stringify(info));
+                            }
+                        });
+                        p.on('close', (code) => {
+                            "use strict";
+                            console.log('线程结束标识：' + code)
+                        })
+                        console.log('child_process pid = ' + p.pid)
+                    } else {
+                        let result = JSON.parse(body)
+                        info.message = result.comment
+                        event.sender.send(data.callback, JSON.stringify(info));
+                    }
+                } else {
+                    console.log('请求错误')
+                    info.message = "服务器错误"
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+            })
+
+        })
+
+        ipc.on('killProcess', (event, data) => {
+            "use strict";
             let info = {
                 flag: false,
                 message: '',
                 data: null
             }
-            let url = "http://es.tes-sys.com/ebook_services/update/bymd5str.html?jsonstr="
-            let query = {
-                count: 0,
-                isbn: data.isbn,
-                data: []
+            try {
+                process.kill(data.pid)
+            } catch (e) {
+                console.log(e)
+                info.message = "错误！"
+                event.sender.send(data.callback, JSON.stringify(info));
+                return;
             }
-            let stringify = JSON.stringify(query);
-            console.log(url + stringify);
-            request.post(url + stringify, {timeout: 5000}, (error, response, body) => {
-                if (error) {
-                    console.log("fail")
-                    return;
-                }
-                if (body) {
-                    let result = JSON.parse(body)
-                    console.log(result)
-                    if (result.stateCode === '100') {
-                        // console.log(result.data)
-                        // result.data.forEach((el, index) => {
-                        //     let filePath = el.downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
-                        //     fs.ensureFile(config.bookUrl + filePath).then((err) => {}, (err) => {})
-                        // })
-                        //
-                        //
-                        //伪多线程下载 --->
-                        let fileArr = result.data;
-                        // 已下载的文件数
-                        let tempNum = 0
-                        // 确定开启的线程数
-                        let threadNum = 1
-                        // 计时
-                        let time = 0
-                        let timer = setInterval(() => {
-                            time += 60;
-                        }, 60)
-                        // 下载失败队列
-                        let errArr = {};
-                        // 开始下载
-                        for (var i = 0; i < threadNum; i++) {
-                            downloadBooks(i, fileArr)
-                        }
-
-                        function downloadBooks(index, data) {
-                            if (fileArr.length === tempNum) {
-                                clearInterval(timer)
-                                console.log("教材下载完成")
-                                console.log("耗时" + (time / 1000).toFixed(2) + "秒")
-                                console.log("以下文件下载失败,请重试")
-                                console.log(errArr)
-                                return;
-                            }
-                            if (!data[index]) {
-                                return;
-                            }
-                            let num = index;
-                            let filePath = config.bookUrl + data[num].downloadUrl.replace(/http:\/\/es.tes-sys.com\/eep_fs_share/, '')
-                            fs.ensureFile(filePath).then(() => {
-                                downloadThread(num, data[num].downloadUrl, filePath).then((body) => {
-                                    console.log(tempNum / (fileArr.length - 1))
-                                    console.log(body)
-                                    if (errArr[num]) {
-                                        delete errArr[num]
-                                    }
-                                    // num ++;
-                                    num += threadNum;
-                                    tempNum++;
-                                    downloadBooks(num, data)
-                                }, (info) => {
-                                    let failNum = info.id
-                                    if (!errArr[failNum]) {
-                                        console.log("任务" + failNum + "下载失败，准备重试……");
-                                        errArr[failNum] = info;
-                                        errArr[failNum].count = 1;
-                                        downloadBooks(failNum, data)
-                                    }
-                                    else {
-                                        //超过三次，跳过该文件
-                                        if (errArr[failNum].count > 2) {
-                                            num += threadNum;
-                                            tempNum++;
-                                            console.log("任务" + failNum + "下载失败");
-                                            downloadBooks(num, data)
-                                        }
-                                        else {
-                                            errArr[failNum].count++;
-                                            console.log("任务" + failNum + "下载失败" + errArr[failNum].count + "次，准备重试……");
-                                            downloadBooks(failNum, data)
-                                        }
-                                    }
-
-                                })
-                            }, (err) => {
-                            })
-                        }
-
-                        function downloadThread(num, downloadUrl, path) {
-                            return new Promise((resolve, reject) => {
-                                request(downloadUrl, {timeout: 5000}, (error, response, body) => {
-                                    if (error) {
-                                        console.log("错误" + num)
-                                        let info = {
-                                            id: num,
-                                            url: downloadUrl,
-                                            path: path,
-                                            error: error
-                                        }
-                                        reject(info)
-                                    }
-                                    resolve(path + "下载完成")
-                                }).pipe(fs.createWriteStream(path))
-                            })
-                        }
-                    } else {
-                        // err
-                    }
-                } else {
-                    // err
-                }
-            })
-
+            info.message = "成功！"
+            event.sender.send(data.callback, JSON.stringify(info));
         })
+        ipc.on('deleteBook', (event, data) => {
+            "use strict";
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            let bookPath = path.resolve(__dirname, config.bookUrl + '/' + data.isbn)
+            fs.emptyDir(bookPath).then(() => {
+                return fs.rmdir(bookPath)
+            }, (err) => {
+                info.message = "删除失败" + err
+                event.sender.send(data.callback, JSON.stringify(info));
+            }).then(() => {
+                info.flag = true
+                info.message = "删除成功"
+                event.sender.send(data.callback, JSON.stringify(info));
+            }, (err) => {
+                info.message = "删除失败" + err
+                event.sender.send(data.callback, JSON.stringify(info));
+            })
+        })
+
 
     },
     windowListener: (win) => { // 程序最小化
