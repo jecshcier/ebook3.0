@@ -30,7 +30,7 @@ const downloadBooks = (index, data) => {
         console.log("耗时" + (time / 1000).toFixed(4) + "秒")
         let mess = {
             id: 'ok',
-            fileData: fileData
+            code: 1
         }
         process.send(mess)
         return;
@@ -39,7 +39,7 @@ const downloadBooks = (index, data) => {
         return;
     }
     let num = index;
-    var reg = new RegExp("(.*?)" + bookIsbn)
+    let reg = new RegExp("(.*?)" + bookIsbn)
     let filePath = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + data[num].downloadUrl.replace(reg, ""))
     fs.ensureFile(filePath).then(() => {
         downloadThread(num, data[num].downloadUrl, filePath).then((body) => {
@@ -47,11 +47,6 @@ const downloadBooks = (index, data) => {
             if (errArr[num]) {
                 delete errArr[num]
             }
-            console.log(data[num].clientpath)
-            fileData.push({
-                "path": data[num].clientpath,
-                "md5": data[num].md5
-            })
             num += threadNum;
             tempNum++;
             downloadBooks(num, data)
@@ -96,11 +91,18 @@ let errArr = {};
 
 let fileArr = null;
 let bookIsbn = null
-let fileData = [];
 
 process.on('message', (m) => {
     fileArr = m.fileArr
     bookIsbn = m.bookIsbn
+    if (!fileArr.length) {
+        let mess = {
+            id: 'ok',
+            code: 0
+        }
+        process.send(mess)
+        process.exit(0)
+    }
     // 开始下载
     for (let i = 0; i < threadNum; i++) {
         downloadBooks(i, fileArr)

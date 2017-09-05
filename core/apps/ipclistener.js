@@ -17,8 +17,9 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(config.dbUrl);
 const uuid = require('uuid')
 const moment = require('moment');
-const md5File = require('md5-file')
+const md5File = require('md5-file/promise')
 const child = require('child_process')
+const glob = require('glob')
 const download_process = path.resolve(__dirname, __dirname + '/download.js')
 const downloadBook_process = path.resolve(__dirname, __dirname + '/book_download.js')
 const upload_process = path.resolve(__dirname, __dirname + '/upload.js')
@@ -532,26 +533,44 @@ const appEvent = {
                 isbn: bookIsbn,
                 data: []
             }
-            let md5Path = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + '/md5.txt')
+            let md5Path = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + '/md5')
             fs.pathExists(md5Path).then((exists) => {
-                let fileData = []
+                let fileData
+                let md5_arr = []
                 if (exists) {
                     try {
-                        fileData = fs.readFileSync(md5Path)
+                        md5_arr = fs.readFileSync(md5Path)
                     } catch (err) {
                         info.message = "程序异常" + err
                         event.sender.send(data.callback, JSON.stringify(info));
                         return false;
                     }
                 }
-                query.data = fileData.length ? JSON.parse(fileData) : []
+                try{
+                    fileData = JSON.parse(md5_arr)
+                }
+                catch (e){
+                    console.log(e)
+                    fileData = []
+                }
+                query.data = fileData
+                let fileObj = {}
+                //若md5文件存在，将md5文件里的对象暂存在变量中，以路径为key
+                if (query.data.length) {
+                    query.data.forEach((el, index) => {
+                        fileObj[el.path] = el
+                    })
+                }
+                console.log(fileObj)
+                console.log(query.data)
+                //序列化query
                 let stringify = JSON.stringify(query);
                 // console.log(url + stringify)
                 // console.log(Buffer.byteLength(url + stringify))
                 request({
                     url: url,
                     method: "POST",
-                    form: {jsonstr:stringify}
+                    form: {jsonstr: stringify}
                 }, (error, response, body) => {
                     if (error) {
                         info.message = "服务器连接失败"
@@ -560,58 +579,126 @@ const appEvent = {
                     }
                     if (body) {
                         console.log(body)
-                        let result = JSON.parse(body)
-                        console.log(result)
-                        // if (result.stateCode === '100') {
-                        //     //真.多线程下载 --->
-                        //     let fileArr = result.data;
-                        //     //这里丢一个线程出去处理
-                        //     let p = child.fork(downloadBook_process, [], {})
-                        //     info.flag = 'start'
-                        //     info.message = "开始下载"
-                        //     info.pid = p.pid;
-                        //     event.sender.send(data.callback, JSON.stringify(info));
-                        //     p.send({bookIsbn: bookIsbn, fileArr: fileArr})
-                        //     p.on('message', function (m) {
-                        //         if (m.id === 'kill') {
-                        //             process.kill(p.pid)
-                        //             console.log("线程结束")
-                        //             info.flag = 'fail'
-                        //             info.message = "下载失败"
-                        //             event.sender.send(data.callback, JSON.stringify(info));
-                        //         }
-                        //         else if (m.id === 'ok') {
-                        //             info.flag = 'success'
-                        //             info.message = "下载成功"
-                        //             fs.writeFile(md5Path, JSON.stringify(m.fileData), (err) => {
-                        //                 if (err) {
-                        //                     console.log(err)
-                        //                 }
-                        //                 else {
-                        //                     console.log('书本md5文件储存成功')
-                        //                 }
-                        //             });
-                        //             process.kill(p.pid)
-                        //             event.sender.send(data.callback, JSON.stringify(info));
-                        //         } else if (m.id === 'progress') {
-                        //             console.log('------->')
-                        //             console.log(m.data)
-                        //             info.flag = "progress"
-                        //             info.message = ''
-                        //             info.data = m.data
-                        //             event.sender.send(data.callback, JSON.stringify(info));
-                        //         }
-                        //     });
-                        //     p.on('close', (code) => {
-                        //         "use strict";
-                        //         console.log('线程结束标识：' + code)
-                        //     })
-                        //     console.log('child_process pid = ' + p.pid)
-                        // } else {
-                        //     let result = JSON.parse(body)
-                        //     info.message = result.comment
-                        //     event.sender.send(data.callback, JSON.stringify(info));
-                        // }
+                        let result;
+                        try {
+                            result = JSON.parse(body)
+                        } catch (e) {
+                            console.log('请求错误')
+                            info.message = "服务器错误"
+                            event.sender.send(data.callback, JSON.stringify(info));
+                            return false;
+                        }
+                        //设置一个需要删除的队列
+                        let del_Arr = []
+                        //设置一个需要更新的队列
+                        let update_Arr = []
+                        //对服务端的文件列表进行遍历，并进行整理
+                        result.data.forEach((el,index)=>{
+                            //对key做一个转义，以便能与本地的fileObj对象进行匹配
+                            let key = el.clientpath.replace(/\\\\/g,'\\')
+                            console.log(key)
+                            if(fileObj[key] && fileObj[key].hasOwnProperty('path')){
+                                console.log('key存在')
+
+                                //服务器标识为删除，则将对象加入删除队列，并从本地fileObj中删除对应的key
+                                if(el.oper === 'D'){
+                                    console.log('该文件需要删除---->')
+                                    console.log(fileObj[key])
+                                    let reg = new RegExp("(.*?)" + bookIsbn)
+                                    let del_url = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + el.downloadUrl.replace(reg, ""))
+                                    del_Arr.push(del_url)
+                                    delete fileObj[key]
+                                    console.log("删除对象-->\n")
+                                    console.log(fileObj[key])
+                                }
+                                //服务器标识为更新，则将对象加入更新队列，并从本地fileObj中更新对应的key
+                                else{
+                                    fileObj[key].md5 = el.md5
+                                    update_Arr.push(el)
+                                    console.log("更新对象--->\n")
+                                    console.log(fileObj[key])
+                                }
+                            }
+                            else{
+                                //本地不存在对应的key，服务器标识为更新，则将对象加入更新队列，并从本地fileObj中增加对应的key
+                                console.log('key不存在')
+                                fileObj[key] = {
+                                    path:'',
+                                    md5:''
+                                }
+                                fileObj[key].path = el.clientpath.replace(/\\\\/g,'#').replace(/\\/g,'#').replace(/#/g,'\\')
+                                fileObj[key].md5 = el.md5
+                                update_Arr.push(el)
+                                console.log("新增对象--->")
+                                console.log(fileObj[key])
+                            }
+                        })
+                        console.log("更新数组--->\n" )
+                        console.log(update_Arr)
+                        console.log("删除数组--->\n")
+                        console.log(del_Arr)
+                        let fileObj_Arr = []
+                        for(let i in fileObj){
+                            fileObj_Arr.push(fileObj[i])
+                        }
+                        console.log(fileObj_Arr.length)
+                        console.log(result.data.length)
+                        console.log(JSON.stringify(fileObj_Arr))
+
+                        if (result.stateCode === '100') {
+                            //真.多线程下载 --->
+                            //这里丢一个线程出去处理
+                            let p = child.fork(downloadBook_process, [], {})
+                            info.flag = 'start'
+                            info.message = "开始下载"
+                            info.pid = p.pid;
+                            event.sender.send(data.callback, JSON.stringify(info));
+                            p.send({bookIsbn: bookIsbn, fileArr: update_Arr})
+                            p.on('message', function (m) {
+                                if (m.id === 'kill') {
+                                    process.kill(p.pid)
+                                    console.log("线程结束")
+                                    info.flag = 'fail'
+                                    info.message = "下载失败"
+                                    event.sender.send(data.callback, JSON.stringify(info));
+                                }
+                                else if (m.id === 'ok') {
+                                    info.flag = 'success'
+                                    info.message = "无更新"
+                                    //code = 1时为文件有更新
+                                    //当文件有更新，或者文件有删除时进行md5文件的重写
+                                    if(m.code || del_Arr.length){
+                                        info.message = "下载成功"
+                                        fs.writeFile(md5Path, JSON.stringify(fileObj_Arr), (err) => {
+                                            if (err) {
+                                                console.log(err)
+                                            }
+                                            else {
+                                                console.log('书本md5文件储存成功')
+                                            }
+                                        });
+                                    }
+                                    process.kill(p.pid)
+                                    event.sender.send(data.callback, JSON.stringify(info));
+                                } else if (m.id === 'progress') {
+                                    console.log('------->')
+                                    console.log(m.data)
+                                    info.flag = "progress"
+                                    info.message = ''
+                                    info.data = m.data
+                                    event.sender.send(data.callback, JSON.stringify(info));
+                                }
+                            });
+                            p.on('close', (code) => {
+                                "use strict";
+                                console.log('线程结束标识：' + code)
+                            })
+                            console.log('child_process pid = ' + p.pid)
+                        } else {
+                            let result = JSON.parse(body)
+                            info.message = result.comment
+                            event.sender.send(data.callback, JSON.stringify(info));
+                        }
                     } else {
                         console.log('请求错误')
                         info.message = "服务器错误"
