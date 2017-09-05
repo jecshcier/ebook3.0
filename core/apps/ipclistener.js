@@ -19,7 +19,12 @@ const uuid = require('uuid')
 const moment = require('moment');
 const md5File = require('md5-file')
 const child = require('child_process')
-
+const download_process = path.resolve(__dirname,'../apps/download.js')
+const downloadBook_process = path.resolve(__dirname,'../apps/book_download.js')
+const upload_process = path.resolve(__dirname,'../apps/upload.js')
+console.log(download_process)
+console.log(downloadBook_process)
+console.log(upload_process)
 let uploadArr = {};
 let downloadArr = {};
 let downloadNum = 0;
@@ -541,7 +546,7 @@ const appEvent = {
                         //真.多线程下载 --->
                         let fileArr = result.data;
                         //这里丢一个线程出去处理
-                        let p = child.fork('./apps/book_download.js', [], {})
+                        let p = child.fork(download_process, [], {})
                         info.flag = 'start'
                         info.message = "开始下载"
                         info.pid = p.pid;
