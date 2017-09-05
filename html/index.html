@@ -7,10 +7,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>ebook3.0</title>
 </head>
-
+<script>
+    var serverUrl = ""
+</script>
 <body>
 <h1>ebook3.0</h1>
 <h4>Shayne C出品</h4>
+<p class="serverUrl">当前的服务器地址：</p>
+
+<button onclick="getServerUrl()">获取服务器地址</button>
 <button onclick="post()">post请求</button>
 <button onclick="get()">get请求</button>
 <button onclick="get2()">网盘get请求</button>
@@ -39,17 +44,15 @@
 <button onclick="developTools()">开发者工具（ctrl + shift + i）</button>
 <input type="text" name="" value="">
 <button type="button" name="button" onclick="uploadFiles({
-        'url':'http://192.168.110.141:8086/ecourse-ms/api/fileUpload.html',
+        'url':serverUrl + '/api/fileUpload.html',
         'data':{
             'files': 'uploadFile',
             'url': '/ebookV3',
-            'createUser': '9AE969E5687D99F7664C140AA4C73B48'
+            'createUser': 'FEAD77FF0737650B0BFB5F4056EE735C',
+            'roleType':3
         }
     })">上传文件测试
 </button>
-<!--方法弃用-->
-<!--<button class="stopUpload" type="button" name="button">停止上传</button>-->
-<!--<button class="stopDownload" type="button" name="button">停止下载</button>-->
 <a target="_blank" href="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C">自动下载测试</a>
 <a target="_blank"
    href="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264">自动下载测试2</a>
@@ -65,6 +68,17 @@
 </body>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
+    // 获取服务器地址
+    function getServerUrl() {
+        app.send('getServerUrl', {
+            callback: 'getServerUrlCallback'
+        })
+        app.once('getServerUrlCallback', function (event, mess) {
+            alert('获取服务器地址成功\n' + mess)
+            serverUrl = JSON.parse(mess).data
+            $(".serverUrl").html('当前服务器地址为：' + serverUrl)
+        })
+    }
     // 上传文件接口--这里的上传文件是指上传至网盘，相应的参数参考网盘上传的api
     function uploadFiles(data) {
         app.send('uploadFiles', data)
@@ -421,6 +435,7 @@
         console.log(obj.id)
         console.log("开始上传");
         $(".stopUpload").attr('uploadid', obj.id);
+        $("body").append('<p>当前子进程:' + obj.id + '</p>');
     })
     app.on('downloadStart', (event, message) => {
         let obj = JSON.parse(message);
@@ -459,7 +474,7 @@
         let obj = JSON.parse(message);
         // let webview = document.getElementById('webview');
         // webview.send('uploadSuccess', message);
-        console.log(obj.id + obj.message + obj.body)
+        console.log(obj.id + obj.message + obj.data)
     };
     const uploadProgress = (event, message) => {
         let obj = JSON.parse(message);

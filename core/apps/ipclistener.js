@@ -663,6 +663,17 @@ const appEvent = {
 
         })
 
+        ipc.on('getServerUrl', (event, data) => {
+            "use strict";
+            let info = {
+                flag: true,
+                message: '',
+                data: null
+            }
+            info.message = "成功！"
+            info.data = config.serverUrl
+            event.sender.send(data.callback, JSON.stringify(info));
+        })
 
     },
     windowListener: (win) => { // 程序最小化
@@ -862,65 +873,52 @@ const appEvent = {
 
         // 上传文件监听
         ipc.on('uploadFiles', function (event, data) {
+
+            let p = child.fork('./apps/upload.js', [], {})
+
+            p.on('message', function (m) {
+                if (m.flag === "start") {
+                    let startObj = {
+                        'id': p.pid,
+                        'message': m.message
+                    }
+                    event.sender.send('uploadStart', JSON.stringify(startObj));
+                }
+                else if (m.flag === "fail") {
+                    let stopObj = {
+                        'id': p.pid,
+                        'message': m.message
+                    }
+                    event.sender.send('uploadFailed', JSON.stringify(stopObj));
+                }
+                else if (m.flag === "success") {
+                    let successObj = {
+                        'id': p.pid,
+                        'message': m.message,
+                        'data':m.data
+                    }
+                    event.sender.send('uploadSuccess', JSON.stringify(successObj))
+                }
+                else if (m.flag === "progress") {
+                    let progressObj = {
+                        'id': p.pid,
+                        'progress': m.data
+                    }
+                    event.sender.send('uploadProgress', JSON.stringify(progressObj));
+                }
+            })
+
+            p.on('close', (code) => {
+                console.log("process EXIT code:" + code)
+            })
             dialog.showOpenDialog({
                 properties: ['openFile', 'multiSelections']
             }, (files) => {
                 if (files) {
-                    let upload_id = downloadNum;
-                    let fileWholeSize = 0;
-                    let uploadUrl = data.url
-                    let fileArr = [];
-                    files.forEach((el, index) => {
-                        console.log(index);
-                        console.log(el);
-                        let fileObj = fs.statSync(el)
-                        console.log(fileObj.size);
-                        fileWholeSize += fileObj.size
-                        fileArr.push(fs.createReadStream(files[index]))
+                    p.send({
+                        data: data,
+                        files: files
                     })
-                    data.data[data.data.files] = fileArr[0];
-                    delete data.data.files
-                    console.log(data.data)
-                    let timer;
-                    let startObj = {
-                        'id': upload_id,
-                        'message': '开始上传'
-                    }
-                    event.sender.send('uploadStart', JSON.stringify(startObj));
-                    console.log("上传中...");
-                    uploadArr[upload_id] = request.post({
-                        url: uploadUrl,
-                        formData: data.data
-                    }, function optionalCallback(err, httpResponse, body) {
-                        if (err || httpResponse.statusCode !== 200) {
-                            let failObj = {
-                                'id': upload_id,
-                                'message': '上传失败'
-                            }
-                            delete uploadArr[upload_id];
-                            event.sender.send('uploadFailed', JSON.stringify(failObj));
-                            return console.error('upload failed:', err);
-                        } else {
-                            let successObj = {
-                                'id': upload_id,
-                                'message': '请求成功',
-                                'body': JSON.parse(body)
-                            }
-                            console.log(successObj);
-                            delete uploadArr[upload_id];
-                            event.sender.send('uploadSuccess', JSON.stringify(successObj));
-                        }
-                    }).on('drain', (data) => {
-                        let progress = uploadArr[upload_id].req.connection._bytesDispatched / fileWholeSize;
-                        progress = (progress * 100).toFixed(2)
-                        let progressObj = {
-                            'id': upload_id,
-                            'progress': progress
-                        }
-                        event.sender.send('uploadProgress', JSON.stringify(progressObj));
-                        console.log(progress)
-                    })
-
                 } else {
                     console.log("用户取消了上传");
                 }
