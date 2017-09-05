@@ -378,6 +378,11 @@ const appEvent = {
                                                     info.message = "错误"
                                                     event.sender.send(data.callback, JSON.stringify(info));
                                                 } else {
+                                                    if(!row.length){
+                                                        info.message = "未查到用户数据"
+                                                        event.sender.send(data.callback, JSON.stringify(info));
+                                                        return false;
+                                                    }
                                                     // 插入新教学过程到新库
                                                     row.forEach((el, index) => {
                                                         let len1 = row.length - 1;
