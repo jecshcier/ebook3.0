@@ -19,9 +19,9 @@ const uuid = require('uuid')
 const moment = require('moment');
 const md5File = require('md5-file')
 const child = require('child_process')
-const download_process = path.resolve(__dirname,__dirname + '/download.js')
-const downloadBook_process = path.resolve(__dirname,__dirname + '/book_download.js')
-const upload_process = path.resolve(__dirname,__dirname + '/upload.js')
+const download_process = path.resolve(__dirname, __dirname + '/download.js')
+const downloadBook_process = path.resolve(__dirname, __dirname + '/book_download.js')
+const upload_process = path.resolve(__dirname, __dirname + '/upload.js')
 let uploadArr = {};
 let downloadArr = {};
 let downloadNum = 0;
@@ -356,12 +356,12 @@ const appEvent = {
                         } else {
                             // 创建新db
                             let MyDB = new sqlite3.Database(filePath)
-                            MyDB.run(require(path.resolve(__dirname,__dirname + "/coreConfig")).processSql, (err) => {
+                            MyDB.run(require(path.resolve(__dirname, __dirname + "/coreConfig")).processSql, (err) => {
                                 if (err) {
                                     info.message = "错误"
                                     event.sender.send(data.callback, JSON.stringify(info));
                                 } else {
-                                    MyDB.run(require(path.resolve(__dirname,__dirname + "/coreConfig")).process_files_Sql, (err) => {
+                                    MyDB.run(require(path.resolve(__dirname, __dirname + "/coreConfig")).process_files_Sql, (err) => {
                                         if (err) {
                                             info.message = "错误"
                                             event.sender.send(data.callback, JSON.stringify(info));
@@ -378,7 +378,7 @@ const appEvent = {
                                                     info.message = "错误"
                                                     event.sender.send(data.callback, JSON.stringify(info));
                                                 } else {
-                                                    if(!row.length){
+                                                    if (!row.length) {
                                                         info.message = "未查到用户数据"
                                                         event.sender.send(data.callback, JSON.stringify(info));
                                                         return false;
@@ -526,72 +526,104 @@ const appEvent = {
                 data: null,
                 pid: null
             }
-            let url = config.serverUrl + "/update/bymd5str.html?jsonstr="
+            let url = config.serverUrl + config.bookApiUrl
             let query = {
                 count: 0,
                 isbn: bookIsbn,
                 data: []
             }
-            let stringify = JSON.stringify(query);
-            console.log(url + stringify);
-            request.post(url + stringify, {timeout: 30000}, (error, response, body) => {
-                if (error) {
-                    info.message = "服务器连接失败"
-                    event.sender.send(data.callback, JSON.stringify(info));
-                    return;
-                }
-                if (body) {
-                    console.log(body)
-                    let result = JSON.parse(body)
-                    // console.log(result)
-                    if (result.stateCode === '100') {
-                        //真.多线程下载 --->
-                        let fileArr = result.data;
-                        //这里丢一个线程出去处理
-                        let p = child.fork(downloadBook_process, [], {})
-                        info.flag = 'start'
-                        info.message = "开始下载"
-                        info.pid = p.pid;
+            let md5Path = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + '/md5.txt')
+            fs.pathExists(md5Path).then((exists) => {
+                let fileData = []
+                if (exists) {
+                    try {
+                        fileData = fs.readFileSync(md5Path)
+                    } catch (err) {
+                        info.message = "程序异常" + err
                         event.sender.send(data.callback, JSON.stringify(info));
-                        p.send({bookIsbn: bookIsbn, fileArr: fileArr})
-                        p.on('message', function (m) {
-                            if (m.id === 'kill') {
-                                process.kill(p.pid)
-                                console.log("线程结束")
-                                info.flag = 'fail'
-                                info.message = "下载失败"
-                                event.sender.send(data.callback, JSON.stringify(info));
-                            }
-                            else if (m.id === 'ok') {
-                                info.flag = 'success'
-                                info.message = "下载成功"
-                                process.kill(p.pid)
-                                event.sender.send(data.callback, JSON.stringify(info));
-                            } else if (m.id === 'progress') {
-                                console.log('------->')
-                                console.log(m.data)
-                                info.flag = "progress"
-                                info.message = ''
-                                info.data = m.data
-                                event.sender.send(data.callback, JSON.stringify(info));
-                            }
-                        });
-                        p.on('close', (code) => {
-                            "use strict";
-                            console.log('线程结束标识：' + code)
-                        })
-                        console.log('child_process pid = ' + p.pid)
-                    } else {
+                        return false;
+                    }
+                }
+                query.data = fileData.length ? JSON.parse(fileData) : []
+                let stringify = JSON.stringify(query);
+                // console.log(url + stringify)
+                // console.log(Buffer.byteLength(url + stringify))
+                request({
+                    url: url,
+                    method: "POST",
+                    form: {jsonstr:stringify}
+                }, (error, response, body) => {
+                    if (error) {
+                        info.message = "服务器连接失败"
+                        event.sender.send(data.callback, JSON.stringify(info));
+                        return;
+                    }
+                    if (body) {
+                        console.log(body)
                         let result = JSON.parse(body)
-                        info.message = result.comment
+                        console.log(result)
+                        // if (result.stateCode === '100') {
+                        //     //真.多线程下载 --->
+                        //     let fileArr = result.data;
+                        //     //这里丢一个线程出去处理
+                        //     let p = child.fork(downloadBook_process, [], {})
+                        //     info.flag = 'start'
+                        //     info.message = "开始下载"
+                        //     info.pid = p.pid;
+                        //     event.sender.send(data.callback, JSON.stringify(info));
+                        //     p.send({bookIsbn: bookIsbn, fileArr: fileArr})
+                        //     p.on('message', function (m) {
+                        //         if (m.id === 'kill') {
+                        //             process.kill(p.pid)
+                        //             console.log("线程结束")
+                        //             info.flag = 'fail'
+                        //             info.message = "下载失败"
+                        //             event.sender.send(data.callback, JSON.stringify(info));
+                        //         }
+                        //         else if (m.id === 'ok') {
+                        //             info.flag = 'success'
+                        //             info.message = "下载成功"
+                        //             fs.writeFile(md5Path, JSON.stringify(m.fileData), (err) => {
+                        //                 if (err) {
+                        //                     console.log(err)
+                        //                 }
+                        //                 else {
+                        //                     console.log('书本md5文件储存成功')
+                        //                 }
+                        //             });
+                        //             process.kill(p.pid)
+                        //             event.sender.send(data.callback, JSON.stringify(info));
+                        //         } else if (m.id === 'progress') {
+                        //             console.log('------->')
+                        //             console.log(m.data)
+                        //             info.flag = "progress"
+                        //             info.message = ''
+                        //             info.data = m.data
+                        //             event.sender.send(data.callback, JSON.stringify(info));
+                        //         }
+                        //     });
+                        //     p.on('close', (code) => {
+                        //         "use strict";
+                        //         console.log('线程结束标识：' + code)
+                        //     })
+                        //     console.log('child_process pid = ' + p.pid)
+                        // } else {
+                        //     let result = JSON.parse(body)
+                        //     info.message = result.comment
+                        //     event.sender.send(data.callback, JSON.stringify(info));
+                        // }
+                    } else {
+                        console.log('请求错误')
+                        info.message = "服务器错误"
                         event.sender.send(data.callback, JSON.stringify(info));
                     }
-                } else {
-                    console.log('请求错误')
-                    info.message = "服务器错误"
-                    event.sender.send(data.callback, JSON.stringify(info));
-                }
+                })
+            }, (err) => {
+                info.message = "程序异常" + err
+                event.sender.send(data.callback, JSON.stringify(info));
+                return false;
             })
+
 
         })
 
@@ -648,20 +680,19 @@ const appEvent = {
             let bookArr = data.bookArr
             let listLen = data.bookArr.length
             let myBookArr = [];
-            bookArr.forEach((el,index)=>{
+            bookArr.forEach((el, index) => {
                 let bookPath = path.resolve(__dirname, config.bookUrl + '/' + el)
-                fs.pathExists(bookPath).then((exists)=>{
-                    if(exists) {
+                fs.pathExists(bookPath).then((exists) => {
+                    if (exists) {
                         myBookArr.push(bookArr[index])
                     }
-                    if (index === listLen - 1)
-                    {
+                    if (index === listLen - 1) {
                         info.flag = true
                         info.message = "获取成功"
                         info.data = myBookArr
                         event.sender.send(data.callback, JSON.stringify(info));
                     }
-                },(err)=>{
+                }, (err) => {
                     info.message = "获取失败" + err
                     event.sender.send(data.callback, JSON.stringify(info));
                     return false;
@@ -902,7 +933,7 @@ const appEvent = {
                     let successObj = {
                         'id': p.pid,
                         'message': m.message,
-                        'data':m.data
+                        'data': m.data
                     }
                     event.sender.send('uploadSuccess', JSON.stringify(successObj))
                 }

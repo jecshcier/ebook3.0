@@ -29,7 +29,8 @@ const downloadBooks = (index, data) => {
         console.log("教材下载完成")
         console.log("耗时" + (time / 1000).toFixed(4) + "秒")
         let mess = {
-            id: 'ok'
+            id: 'ok',
+            fileData: fileData
         }
         process.send(mess)
         return;
@@ -39,13 +40,18 @@ const downloadBooks = (index, data) => {
     }
     let num = index;
     var reg = new RegExp("(.*?)" + bookIsbn)
-    let filePath = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + data[num].downloadUrl.replace(reg,""))
+    let filePath = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + data[num].downloadUrl.replace(reg, ""))
     fs.ensureFile(filePath).then(() => {
         downloadThread(num, data[num].downloadUrl, filePath).then((body) => {
             console.log(body)
             if (errArr[num]) {
                 delete errArr[num]
             }
+            console.log(data[num].clientpath)
+            fileData.push({
+                "path": data[num].clientpath,
+                "md5": data[num].md5
+            })
             num += threadNum;
             tempNum++;
             downloadBooks(num, data)
@@ -90,6 +96,7 @@ let errArr = {};
 
 let fileArr = null;
 let bookIsbn = null
+let fileData = [];
 
 process.on('message', (m) => {
     fileArr = m.fileArr

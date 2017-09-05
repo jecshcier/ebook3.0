@@ -1,39 +1,42 @@
 const config = {
     //app名称
-    "title":"ebook3.0",
+    "title": "ebook3.0",
     //是否使用http服务
-    "useServer":false,
+    "useServer": false,
     //本地http服务设置
-    "localServerConfig":{
+    "localServerConfig": {
         //端口
-        "PORT":53480,
+        "PORT": 53480,
         //根目录
-        "root":process.cwd() + "/../html"
+        "root": process.cwd() + "/../html"
     },
     //初始宽度
-    "width":800,
+    "width": 800,
     //初始高度
-    "height":600,
+    "height": 600,
     //最小宽度
-    "minWidth":800,
+    "minWidth": 800,
     //最小高度
-    "minHeight":600,
+    "minHeight": 600,
     //全屏模式
-    "fullscreen":false,
+    "fullscreen": false,
     //是否允许全屏
-    "fullscreenable":true,
+    "fullscreenable": true,
     //静态根目录
-    "staticUrl":process.cwd() + "/../html/index.html",
+    "staticUrl": process.cwd() + "/../html/index.html",
     //本地数据库目录
-    "dbUrl":process.cwd() + "/../userData/user.db",
+    "dbUrl": process.cwd() + "/../userData/user.db",
     //默认资源下载地址
-    "downloadPath":process.cwd() + "/../userData",
+    "downloadPath": process.cwd() + "/../userData",
     //书本下载目录
-    "bookUrl":process.cwd() + "/../html/books",
+    "bookUrl": process.cwd() + "/../html/books",
     //允许下载书本内容时的最大线程数
-    "downloadMaxThread":5,
+    "downloadMaxThread": 5,
     //服务器地址
-    "serverUrl":'http://es.tes-sys.com/ebook_services'
+    "serverUrl": 'http://es.tes-sys.com/ebook_services',
+    //书本下载url
+    // "bookApiUrl": '/update/bymd5str.html?jsonstr='
+    "bookApiUrl": '/update/bymd5str.html'
 }
 
 module.exports = config
