@@ -356,12 +356,12 @@ const appEvent = {
                         } else {
                             // 创建新db
                             let MyDB = new sqlite3.Database(filePath)
-                            MyDB.run(require("./coreConfig").processSql, (err) => {
+                            MyDB.run(require(path.resolve(__dirname,__dirname + "/coreConfig")).processSql, (err) => {
                                 if (err) {
                                     info.message = "错误"
                                     event.sender.send(data.callback, JSON.stringify(info));
                                 } else {
-                                    MyDB.run(require("./coreConfig").process_files_Sql, (err) => {
+                                    MyDB.run(require(path.resolve(__dirname,__dirname + "/coreConfig")).process_files_Sql, (err) => {
                                         if (err) {
                                             info.message = "错误"
                                             event.sender.send(data.callback, JSON.stringify(info));
@@ -802,7 +802,7 @@ const appEvent = {
 
         // 主动下载文件监听
         ipc.on('downloadFile', function (event, data) {
-            let p = child.fork('./apps/download.js', [], {})
+            let p = child.fork(download_process, [], {})
 
             p.on('message', function (m) {
                 console.log(m)
