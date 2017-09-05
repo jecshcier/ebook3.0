@@ -546,7 +546,7 @@ const appEvent = {
                         //真.多线程下载 --->
                         let fileArr = result.data;
                         //这里丢一个线程出去处理
-                        let p = child.fork(download_process, [], {})
+                        let p = child.fork(downloadBook_process, [], {})
                         info.flag = 'start'
                         info.message = "开始下载"
                         info.pid = p.pid;
