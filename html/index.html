@@ -214,6 +214,7 @@
 //                pid:null//进程的id，可调用killProcess方法杀死进程
 //            }
         var obj = JSON.parse(mess)
+        console.log(obj)
 
         if (obj.flag === 'start') {
             $("body").append('<p>当前子进程:' + obj.pid + '</p>');

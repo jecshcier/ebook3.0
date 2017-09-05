@@ -22,9 +22,6 @@ const child = require('child_process')
 const download_process = path.resolve(__dirname,__dirname + '/download.js')
 const downloadBook_process = path.resolve(__dirname,__dirname + '/book_download.js')
 const upload_process = path.resolve(__dirname,__dirname + '/upload.js')
-console.log(download_process)
-console.log(downloadBook_process)
-console.log(upload_process)
 let uploadArr = {};
 let downloadArr = {};
 let downloadNum = 0;
@@ -741,7 +738,7 @@ const appEvent = {
             let itemUrl = item.getURL();
             let itemSize = item.getTotalBytes();
 
-            let p = child.fork('./apps/download.js', [], {})
+            let p = child.fork(download_process, [], {})
 
             p.on('message', function (m) {
                 console.log(m)
@@ -879,7 +876,7 @@ const appEvent = {
         // 上传文件监听
         ipc.on('uploadFiles', function (event, data) {
 
-            let p = child.fork('./apps/upload.js', [], {})
+            let p = child.fork(upload_process, [], {})
 
             p.on('message', function (m) {
                 if (m.flag === "start") {
