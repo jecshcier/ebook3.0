@@ -29,7 +29,7 @@ const startDownload = (url, newName, dirPath) => {
     let fileSize = 0;
     let itemSize = 0;
     let filePath = '';
-    let progress
+    let progress = 0
     let progressInt
     let info = {
         flag: "",
@@ -45,7 +45,12 @@ const startDownload = (url, newName, dirPath) => {
             writerStream.end();
             if (newName) {
                 let newFileName = path.resolve(__dirname, dirPath + '/' + newName)
-                fs.renameSync(filePath, newFileName)
+                try {
+                    fs.renameSync(filePath, newFileName)
+                }
+                catch (e){
+                    console.log(e)
+                }
                 info.flag = "success"
                 info.message = "下载成功"
                 process.send(info)
@@ -69,7 +74,25 @@ const startDownload = (url, newName, dirPath) => {
         progress = fileSize / itemSize
         progress = (progress * 100).toFixed(2)
     }).on('response', (res) => {
-        itemName = res.headers['content-disposition'].replace(/attachment; filename=/, '');
+        try {
+            itemName = res.headers['content-disposition'].replace(/attachment;/, '').replace(/filename=/,'').replace(/"/g,'');
+        }
+        catch (e){
+            console.log(e)
+        }
+        if (!itemName){
+            let itemName_arr = res.request.uri.pathname.split('/');
+            itemName = itemName_arr[itemName_arr.length - 1]
+        }
+        console.log(itemName)
+        if(!itemName)
+        {
+            info.flag = "fail"
+            info.message = "无法获取文件名"
+            info.itemName = itemName
+            process.send(info)
+            process.exit(0)
+        }
         itemSize = parseInt(res.headers['content-length'])
         filePath = path.resolve(__dirname, dirPath + '/' + itemName);
         info.itemName = itemName
@@ -79,6 +102,7 @@ const startDownload = (url, newName, dirPath) => {
             info.flag = "fail"
             info.message = "文件写入失败"
             info.itemName = itemName
+            console.log(err)
             process.send(info)
             process.exit(0)
         });

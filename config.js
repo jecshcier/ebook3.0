@@ -33,7 +33,7 @@ const config = {
     // 允许下载书本内容时的最大线程数
     "downloadMaxThread": 5,
     // 服务器地址
-    "serverUrl": 'http:// es.tes-sys.com/ebook_services',
+    "serverUrl": 'http://es.tes-sys.com/ebook_services',
     // 书本下载url
     // "bookApiUrl": '/update/bymd5str.html?jsonstr='
     "bookApiUrl": '/update/bymd5str.html'
