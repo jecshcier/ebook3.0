@@ -23,7 +23,7 @@ const config = {
     // 是否允许全屏
     "fullscreenable": true,
     // 静态根目录
-    "staticUrl": __dirname + "/html/index.html",
+    "staticUrl": __dirname + "/html/doc.html",
     // 本地数据库目录
     "dbUrl": __dirname + "/userData/user.db",
     // 默认资源下载地址
