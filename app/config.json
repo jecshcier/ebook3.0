@@ -1,6 +1,6 @@
 {
     "title": "ebook3.0",
-    "useServer": true,
+    "useServer": false,
     "localServerConfig": {
         "PORT": 53480,
         "root": "html"
