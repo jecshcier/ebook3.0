@@ -1,5 +1,5 @@
 const path = require('path')
-const config = require(path.resolve(__dirname, process.cwd() + '/config'));
+const config = require(path.resolve(__dirname,'../config'));
 const fs = require('fs-extra')
 const request = require('request')
 

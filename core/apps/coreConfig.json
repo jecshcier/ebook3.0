@@ -1,4 +1,4 @@
 {
     "processSql": "CREATE TABLE teach_process (id VARCHAR(50),book_id VARCHAR(50),user_id VARCHAR(50),page_id VARCHAR(50),count INTEGER(2),pos_x INTEGER(10),pos_y INTEGER(10),create_time TEXT,update_time TEXT)",
-    "process_files_Sql": "CREATE TABLE process_files (id VARCHAR(50),file_id VARCHAR(50),process_id VARCHAR(50),detail_index INTEGER(2),file_name VARCHAR(255),ext_name VARCHAR(50),edit_name VARCHAR(255),convert_name VARCHAR(255),file_md5 VARCHAR(50),create_time TEXT,isDownload INTEGER(1) DEFAULT(0))"
+    "process_files_Sql": "CREATE TABLE process_files (id VARCHAR(50),file_id VARCHAR(50),process_id VARCHAR(50),detail_index INTEGER(2),file_name VARCHAR(255),ext_name VARCHAR(50),edit_name VARCHAR(255),convert_name VARCHAR(255),download_url TEXT,view_url TEXT,file_md5 VARCHAR(50),create_time TEXT,isDownload INTEGER(1) DEFAULT(0))"
 }

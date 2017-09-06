@@ -8,7 +8,7 @@ const config = {
         //端口
         "PORT": 53480,
         //根目录
-        "root": process.cwd() + "/../html"
+        "root": __dirname + "/../html"
     },
     //初始宽度
     "width": 800,
@@ -23,13 +23,13 @@ const config = {
     //是否允许全屏
     "fullscreenable": true,
     //静态根目录
-    "staticUrl": process.cwd() + "/../html/index.html",
+    "staticUrl": __dirname + "/../html/index.html",
     //本地数据库目录
-    "dbUrl": process.cwd() + "/../userData/user.db",
+    "dbUrl": __dirname + "/../userData/user.db",
     //默认资源下载地址
-    "downloadPath": process.cwd() + "/../userData",
+    "downloadPath": __dirname + "/../userData",
     //书本下载目录
-    "bookUrl": process.cwd() + "/../html/books",
+    "bookUrl": __dirname + "/../html/books",
     //允许下载书本内容时的最大线程数
     "downloadMaxThread": 5,
     //服务器地址

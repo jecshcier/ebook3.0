@@ -35,7 +35,7 @@
 <button onclick="killProcess($('.pid').val())">杀进程</button>
 <button onclick="getBookList(['jckj','jjdy','kwhjj'])">获取教材列表</button>
 <button onclick="deleteBook('kwhjj')">删除教材</button>
-<button onclick="downloadBooks('jckj')">下载教材</button>
+<button onclick="createUserDb()">创建空db</button>
 <button onclick="downloadBooks('jckj')">下载教材</button>
 <button onclick="max()">最大化</button>
 <button onclick="min()">最小化</button>
@@ -68,6 +68,17 @@
 </body>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
+    // 创建空db -- 测试用
+    function createUserDb(){
+        app.send('createUserDb', {
+            callback: 'createUserDbCallback'
+        })
+        app.once('createUserDbCallback', function (event, mess) {
+            alert(mess)
+        })
+    }
+
+
     // 获取服务器地址
     function getServerUrl() {
         app.send('getServerUrl', {
@@ -103,9 +114,9 @@
     function addProcess() {
         app.send('addProcess', {
             info: {
-                'book_id': '测试',
-                'user_id': '测试',
-                'page_id': '测试',
+                'book_id': 'math',
+                'user_id': 'chenshenhao',
+                'page_id': 'chenshenhao',
                 'count': '测试',
                 'pos_x': '测试',
                 'pos_y': '测试'
@@ -116,35 +127,9 @@
                 'file_name': '测试',
                 'ext_name': '测试',
                 'edit_name': '测试',
-                'convert_name': 'test.html'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试',
-                'convert_name': 'test.html'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试',
-                'convert_name': 'test.html'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试',
-                'convert_name': 'test.html'
-            }, {
-                'file_id': '测试',
-                'detail_index': 0,
-                'file_name': '测试',
-                'ext_name': '测试',
-                'edit_name': '测试',
-                'convert_name': 'test.html'
+                'convert_name': 'test.html',
+                'download_url':'aaaaaaaaaa',
+                'view_url':'bbbbbbbbbbb'
             }],
             callback: 'addProcessCallback'
         })
@@ -287,7 +272,7 @@
     function editProcess() {
         app.send('editProcess', {
             info: {
-                'id': '70840e2ac87f4440b61fab3e908f3851',
+                'id': 'fa31a0618097446baf9727353ba3ef29',
                 'pos_x': 121,
                 'pos_y': 333,
                 'count': 4,
@@ -299,39 +284,9 @@
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
                 'convert_name': 'hello.html',
+                'download_url':'ccccccc',
+                'view_url':'ddddddd',
                 'isDownload': 0
-            }, {
-                'file_id': '编辑教学过程测试',
-                'detail_index': 0,
-                'file_name': '编辑教学过程测试',
-                'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试',
-                'convert_name': 'hello.html',
-                'isDownload': 0
-            }, {
-                'file_id': '编辑教学过程测试',
-                'detail_index': 0,
-                'file_name': '编辑教学过程测试',
-                'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试',
-                'convert_name': 'hello.html',
-                'isDownload': 1
-            }, {
-                'file_id': '编辑教学过程测试',
-                'detail_index': 0,
-                'file_name': '编辑教学过程测试',
-                'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试',
-                'convert_name': 'hello.html',
-                'isDownload': 0
-            }, {
-                'file_id': '编辑教学过程测试',
-                'detail_index': 0,
-                'file_name': '编辑教学过程测试',
-                'ext_name': '编辑教学过程测试',
-                'edit_name': '编辑教学过程测试',
-                'convert_name': 'hello.html',
-                'isDownload': 1
             }],
             callback: 'editProcessCallback'
         })
