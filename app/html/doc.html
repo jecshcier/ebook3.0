@@ -34,7 +34,7 @@
 <input class="pid" type="text">
 <button onclick="killProcess($('.pid').val())">杀进程</button>
 <button onclick="getBookList(['jckj','jjdy','kwhjj'])">获取教材列表</button>
-<button onclick="deleteBook('kwhjj')">删除教材</button>
+<button onclick="deleteBook('jckj')">删除教材</button>
 <button onclick="createUserDb()">创建空db</button>
 <button onclick="downloadBooks('jckj')">下载教材</button>
 <button onclick="max()">最大化</button>
@@ -57,7 +57,7 @@
 <a target="_blank"
    href="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264">自动下载测试2</a>
 <button class="download" type="button"
-        url="http://dl10.compuclever.com/pctuneupmaestro_setup.exe" name="button">手动下载测试
+        url="http://pan.tes-sys.com/tesfs/file/download.html?id=F462F267203AB7E683E318322641D264" name="button">手动下载测试
 </button>
 <button class="download" type="button"
         url="http://pan.tes-sys.com/tesfs/file/download.html?id=4E650CAD972874984AEF1B3C996FD28C" name="button">手动下载测试
@@ -69,7 +69,7 @@
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
     // 创建空db -- 测试用
-    function createUserDb(){
+    function createUserDb() {
         app.send('createUserDb', {
             callback: 'createUserDbCallback'
         })
@@ -90,6 +90,7 @@
             $(".serverUrl").html('当前服务器地址为：' + serverUrl)
         })
     }
+
     // 上传文件接口--这里的上传文件是指上传至网盘，相应的参数参考网盘上传的api
     function uploadFiles(data) {
         app.send('uploadFiles', data)
@@ -128,8 +129,8 @@
                 'ext_name': '测试',
                 'edit_name': '测试',
                 'convert_name': 'test.html',
-                'download_url':'aaaaaaaaaa',
-                'view_url':'bbbbbbbbbbb'
+                'download_url': 'aaaaaaaaaa',
+                'view_url': 'bbbbbbbbbbb'
             }],
             callback: 'addProcessCallback'
         })
@@ -228,7 +229,7 @@
         })
     }
 
-//    获取教材列表
+    //    获取教材列表
     function getBookList(bookArr) {
         app.send('getBookList', {
             bookArr: bookArr,
@@ -238,6 +239,7 @@
             alert(mess)
         })
     }
+
     // 删除教学过程
     function deleteProcess() {
         app.send('deleteProcess', {
@@ -284,8 +286,8 @@
                 'ext_name': '编辑教学过程测试',
                 'edit_name': '编辑教学过程测试',
                 'convert_name': 'hello.html',
-                'download_url':'ccccccc',
-                'view_url':'ddddddd',
+                'download_url': 'ccccccc',
+                'view_url': 'ddddddd',
                 'isDownload': 0
             }],
             callback: 'editProcessCallback'
@@ -309,7 +311,7 @@
     // get_query接口
     function get2() {
         app.send('httpGet_Query', {
-            url: 'http://192.168.109.229:8080//skydisk-ms/api/dirList.html',
+            url: 'http://192.168.109.229:8080/skydisk-ms/api/dirList.html',
             data: {
                 'd': '3D916361504ED86D22CD23A3C720E867',
                 'url': '/',
@@ -463,26 +465,26 @@
 
     // 上传、下载相关接口-----》
     // 其中，返回的message中有相应的itemID，可根据相应的id设定相应的进度条、停止等控制
-    //    下载模块返回值
-    //    let startObj = {
-    //        'id': p.pid,
-    //        'itemName': m.itemName,
-    //        'message': m.message
-    //    }
-    //    let stopObj = {
-    //        'id': p.pid,
-    //        'itemName': m.itemName,
-    //        'message': m.message
-    //    }
-    //    let successObj = {
-    //        'id': p.pid,
-    //        'itemName': m.itemName,
-    //        'message': m.message
-    //    }
-    //    let progressObj = {
-    //        'id': p.pid,
-    //        'progress': m.data
-    //    }
+    // 下载模块返回值
+    // let startObj = {
+    //  'id': p.pid,
+    //  'itemName': m.itemName,
+    //  'message': m.message
+    // }
+    // let stopObj = {
+    //  'id': p.pid,
+    //  'itemName': m.itemName,
+    //  'message': m.message
+    // }
+    // let successObj = {
+    //  'id': p.pid,
+    //  'itemName': m.itemName,
+    //  'message': m.message
+    // }
+    // let progressObj = {
+    //  'id': p.pid,
+    //  'progress': m.data
+    // }
     // app.on('uploadProgress', uploadProgress)
     // app.on('uploadStart', uploadStart)
     // app.on('uploadSuccess', uploadSuccess)
@@ -491,6 +493,46 @@
     // app.on('downloadStart', downloadStart)
     // app.on('downloadSuccess', downloadSucess)
     // app.on('downloadFailed', downloadFailed)
+    // json配置文件设置
+    // {
+    //  // app名称
+    //  "title": "ebook3.0",
+    //  // 是否使用http服务
+    //  "useServer": true,
+    //  // 本地http服务设置
+    //  "localServerConfig": {
+    //  // 端口
+    //  "PORT": 53480,
+    //// 根目录
+    //"root": "html"
+    // },
+    //  // 初始宽度
+    //  "width": 800,
+    //  // 初始高度
+    //  "height": 600,
+    //  // 最小宽度
+    //  "minWidth": 800,
+    //  // 最小高度
+    //  "minHeight": 600,
+    //  // 全屏模式
+    //  "fullscreen": false,
+    //  // 是否允许全屏
+    //  "fullscreenable": true,
+    //  // 静态根目录
+    //  "staticUrl":"html/doc.html",
+    //  // 本地数据库目录
+    //  "dbUrl": "userData/user.db",
+    //  // 默认资源下载地址
+    //  "downloadPath": "userData",
+    //  // 书本下载目录
+    //  "bookUrl": "html/books",
+    //  // 允许下载书本内容时的最大线程数
+    //  "downloadMaxThread": 5,
+    //  // 服务器地址
+    //  "serverUrl": "http://es.tes-sys.com/ebook_services",
+    //  // 书本下载url
+    //  "bookApiUrl": "/update/bymd5str.html"
+    // }
 </script>
 
 </html>

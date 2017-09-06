@@ -1,7 +1,8 @@
 const path = require('path')
-const config = require(path.resolve(__dirname,'../../config'));
+const config = require(path.resolve(__dirname,'../../app/config'));
 const fs = require('fs-extra')
 const request = require('request')
+const bookUrl = path.resolve(__dirname,'../../app/' + config.bookUrl)
 
 const downloadThread = (num, downloadUrl, path) => {
     return new Promise((resolve, reject) => {
@@ -40,7 +41,7 @@ const downloadBooks = (index, data) => {
     }
     let num = index;
     let reg = new RegExp("(.*?)" + bookIsbn)
-    let filePath = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + data[num].downloadUrl.replace(reg, ""))
+    let filePath = path.resolve(bookUrl, './' + bookIsbn + data[num].downloadUrl.replace(reg, ""))
     fs.ensureFile(filePath).then(() => {
         downloadThread(num, data[num].downloadUrl, filePath).then((body) => {
             console.log(body)

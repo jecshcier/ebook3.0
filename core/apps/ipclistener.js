@@ -9,22 +9,23 @@ const ipc = require('electron').ipcMain
 const app = require('electron').app
 const dialog = require('electron').dialog
 const path = require('path')
-const config = require(path.resolve(__dirname, '../../config'));
+const config = require(path.resolve(__dirname, '../../app/config'));
 const request = require('request')
 const fs = require('fs-extra')
 const querystring = require('querystring');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(config.dbUrl);
+const db = new sqlite3.Database(path.resolve(__dirname,'../../app/' + config.dbUrl));
 const uuid = require('uuid')
 const moment = require('moment');
 const child = require('child_process')
 const download_process = path.resolve(__dirname, __dirname + '/download.js')
 const downloadBook_process = path.resolve(__dirname, __dirname + '/book_download.js')
 const upload_process = path.resolve(__dirname, __dirname + '/upload.js')
-let uploadArr = {};
-let downloadArr = {};
-let downloadNum = 0;
-
+const bookUrl = path.resolve(__dirname,'../../app/' + config.bookUrl)
+const downloadPath = path.resolve(__dirname,'../../app/' + config.downloadPath)
+console.log(bookUrl)
+console.log(downloadPath)
+console.log(path.resolve(__dirname,'../../app/' + config.dbUrl))
 const appEvent = {
     appListener: () => {
 
@@ -279,7 +280,7 @@ const appEvent = {
                 message: '',
                 data: null
             }
-            let filePath = path.resolve(__dirname, config.downloadPath + '/' + data.fileName)
+            let filePath = path.resolve(downloadPath, './' + data.fileName)
             fs.pathExists(filePath).then((exists) => {
                 if (exists) {
                     info.flag = true
@@ -538,7 +539,8 @@ const appEvent = {
                 isbn: bookIsbn,
                 data: []
             }
-            let md5Path = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + '/md5')
+            let md5Path = path.resolve(bookUrl, './' + bookIsbn + '/md5')
+            console.log(md5Path)
             fs.pathExists(md5Path).then((exists) => {
                 let fileData
                 let md5_arr = []
@@ -610,7 +612,7 @@ const appEvent = {
                                     console.log('该文件需要删除---->')
                                     console.log(fileObj[key])
                                     let reg = new RegExp("(.*?)" + bookIsbn)
-                                    let del_url = path.resolve(__dirname, config.bookUrl + '/' + bookIsbn + el.clientpath.replace(reg, "").replace(/\\/g, '\/'))
+                                    let del_url = path.resolve(bookUrl, './' + bookIsbn + el.clientpath.replace(reg, "").replace(/\\/g, '\/'))
                                     console.log('del_url->>')
                                     console.log(del_url)
                                     del_Arr.push(del_url)
@@ -765,7 +767,7 @@ const appEvent = {
                 message: '',
                 data: null
             }
-            let bookPath = path.resolve(__dirname, config.bookUrl + '/' + data.isbn)
+            let bookPath = path.resolve(bookUrl, './' + data.isbn)
             fs.emptyDir(bookPath).then(() => {
                 return fs.rmdir(bookPath)
             }, (err) => {
@@ -793,7 +795,7 @@ const appEvent = {
             let listLen = data.bookArr.length
             let myBookArr = [];
             bookArr.forEach((el, index) => {
-                let bookPath = path.resolve(__dirname, config.bookUrl + '/' + el)
+                let bookPath = path.resolve(bookUrl, './' + el)
                 fs.pathExists(bookPath).then((exists) => {
                     if (exists) {
                         myBookArr.push(bookArr[index])
@@ -919,26 +921,6 @@ const appEvent = {
         ipc.on('developTools', function (event) {
             win.webContents.toggleDevTools()
 
-        })
-
-        ipc.on('stopUpload', function (event, data) {
-            // console.log(uploadArr[id]);
-            if (uploadArr[data.id]) {
-                uploadArr[data.id].req.abort();
-                event.sender.send(data.callback, "成功");
-            } else {
-                event.sender.send(data.callback, "失败");
-            }
-        })
-        //
-        ipc.on('stopDownload', function (event, data) {
-            // console.log(uploadArr[id]);
-            if (downloadArr[data.id]) {
-                downloadArr[data.id].req.abort();
-                event.sender.send(data.callback, "成功");
-            } else {
-                event.sender.send(data.callback, "失败");
-            }
         })
 
         // 监听window默认下载事件
@@ -1076,7 +1058,7 @@ const appEvent = {
                     type: 1,
                     url: data.url,
                     newName: data.newName,
-                    dirPath: path.resolve(__dirname, config.downloadPath)
+                    dirPath: downloadPath
                 })
             }
             // 设置下载路径

@@ -10,13 +10,14 @@ const app = electron.ipcRenderer
 const BrowserWindow = electron.remote.BrowserWindow
 const fs = require('fs')
 const path = require('path')
-const config = require(path.resolve(__dirname,'../../config'));
-
+const config = require(path.resolve(__dirname,'../../app/config'));
+const staticUrl = path.resolve(__dirname,'../../app/' + config.staticUrl)
+console.log(staticUrl)
 
 onload = () => {
     document.title = config.title
     let webview = document.getElementById('webview');
-    webview.src = config.staticUrl
+    webview.src = staticUrl
     webview.addEventListener('console-message', (e) => {
         console.log('Guest page logged a message:', e.message)
     })

@@ -1,0 +1,21 @@
+{
+    "title": "ebook3.0",
+    "useServer": true,
+    "localServerConfig": {
+        "PORT": 53480,
+        "root": "html"
+    },
+    "width": 800,
+    "height": 600,
+    "minWidth": 800,
+    "minHeight": 600,
+    "fullscreen": false,
+    "fullscreenable": true,
+    "staticUrl":"html/doc.html",
+    "dbUrl": "userData/user.db",
+    "downloadPath": "userData",
+    "bookUrl": "html/books",
+    "downloadMaxThread": 5,
+    "serverUrl": "http://es.tes-sys.com/ebook_services",
+    "bookApiUrl": "/update/bymd5str.html"
+}
