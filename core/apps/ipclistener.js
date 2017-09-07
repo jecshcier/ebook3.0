@@ -14,18 +14,18 @@ const request = require('request')
 const fs = require('fs-extra')
 const querystring = require('querystring');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database(path.resolve(__dirname,'../../app/' + config.dbUrl));
+const db = new sqlite3.Database(path.resolve(__dirname, '../../app/' + config.dbUrl));
 const uuid = require('uuid')
 const moment = require('moment');
 const child = require('child_process')
 const download_process = path.resolve(__dirname, __dirname + '/download.js')
 const downloadBook_process = path.resolve(__dirname, __dirname + '/book_download.js')
 const upload_process = path.resolve(__dirname, __dirname + '/upload.js')
-const bookUrl = path.resolve(__dirname,'../../app/' + config.bookUrl)
-const downloadPath = path.resolve(__dirname,'../../app/' + config.downloadPath)
-console.log(bookUrl)
-console.log(downloadPath)
-console.log(path.resolve(__dirname,'../../app/' + config.dbUrl))
+const bookUrl = path.resolve(__dirname, '../../app/' + config.bookUrl)
+const downloadPath = path.resolve(__dirname, '../../app/' + config.downloadPath)
+const QRCode = require('qrcode')
+
+
 const appEvent = {
     appListener: () => {
 
@@ -525,6 +525,7 @@ const appEvent = {
             })
         })
 
+        //下载教材
         ipc.on('downloadBooks', (event, data) => {
             let bookIsbn = data.isbn
             let info = {
@@ -741,6 +742,7 @@ const appEvent = {
 
         })
 
+        //删除进程
         ipc.on('killProcess', (event, data) => {
             "use strict";
             let info = {
@@ -760,6 +762,7 @@ const appEvent = {
             event.sender.send(data.callback, JSON.stringify(info));
         })
 
+        //删除书本
         ipc.on('deleteBook', (event, data) => {
             "use strict";
             let info = {
@@ -783,7 +786,7 @@ const appEvent = {
             })
         })
 
-
+        //获取匹配后的书本列表
         ipc.on('getBookList', (event, data) => {
             "use strict";
             let info = {
@@ -815,6 +818,7 @@ const appEvent = {
 
         })
 
+        //获取配置文件的服务器地址
         ipc.on('getServerUrl', (event, data) => {
             "use strict";
             let info = {
@@ -827,6 +831,7 @@ const appEvent = {
             event.sender.send(data.callback, JSON.stringify(info));
         })
 
+        //创建教学过程空db
         ipc.on('createUserDb', (event, data) => {
             "use strict";
             let info = {
@@ -886,6 +891,117 @@ const appEvent = {
                 }
             })
 
+
+        })
+
+        //创建二维码
+        ipc.on('createQRcode', (event, data) => {
+            let string = data.data.string
+            let outputDir = data.data.outputDir
+            let fileName = data.data.fileName
+            let options = data.data.options
+            let filePath = path.resolve(__dirname, outputDir + '/' + fileName)
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            QRCode.toFile(filePath, string, options, function (err) {
+                if (err) {
+                    console.log(err)
+                    info.message = "失败！"
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+                else {
+                    console.log('done')
+                    info.message = "成功！"
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+            })
+        })
+
+        //获取文件夹路径
+        ipc.on('chooseDir', (event, data) => {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            dialog.showOpenDialog({
+                'properties': ['openDirectory', 'createDirectory']
+            }, (dirPath) => {
+                if (dirPath) {
+                    info.flag = true
+                    info.message = "成功！"
+                    info.data = dirPath[0]
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+            })
+        })
+
+        //获取文件路径队列
+        ipc.on('chooseFiles', (event, data) => {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            dialog.showOpenDialog({
+                'properties': ['openFile', 'multiSelections']
+            }, (filePath) => {
+                if (filePath) {
+                    info.flag = true
+                    info.message = "成功！"
+                    info.data = filePath
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+            })
+        })
+
+        //获取文件夹下所有文件
+        ipc.on('getFolderFiles', (event, data) => {
+            let dirPath = data.dirPath
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            fs.readdir(dirPath, function (err, files) {
+                if (err) {
+                    info.message = "错误！==>" + err
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+                let filesArr = []
+                files.forEach(function (filename,index) {
+                    let truePath = path.join(dirPath, filename);
+                    fs.stat(truePath, function (err, stats) {
+                        if (err) {
+                            return false
+                            info.message = "错误！==>" + err
+                            event.sender.send(data.callback, JSON.stringify(info))
+                        }
+                        //文件
+                        if (stats.isFile()) {
+                            filesArr.push({
+                                fileName:filename,
+                                path:truePath,
+                                stats:stats
+                            })
+                        } else if (stats.isDirectory()) {
+
+                        }
+
+                        if(index === files.length - 1){
+                            info.flag = true
+                            info.message = "成功！"
+                            info.data = filesArr
+                            console.log(filesArr)
+                            event.sender.send(data.callback, JSON.stringify(info));
+                        }
+                    });
+                });
+
+            })
 
         })
 
