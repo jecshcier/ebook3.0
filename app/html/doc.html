@@ -36,7 +36,10 @@
 <button onclick="getBookList(['jckj','jjdy','kwhjj'])">获取教材列表</button>
 <button onclick="deleteBook('jckj')">删除教材</button>
 <button onclick="createUserDb()">创建空db</button>
-<button onclick="downloadBooks('jckj')">下载教材</button>
+<button onclick="chooseDir()">获取文件夹路径</button>
+<button onclick="createQRcode()">创建二维码</button>
+<button onclick="chooseFiles()">获取文件路径队列</button>
+<button onclick="getFolderFiles()">获取文件夹下载所有文件</button>
 <button onclick="max()">最大化</button>
 <button onclick="min()">最小化</button>
 <button onclick="exitApp()">关闭</button>
@@ -68,6 +71,80 @@
 </body>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
+    // 获取文件夹下所有文件
+    function getFolderFiles() {
+        chooseDir(function(url){
+            app.send('getFolderFiles', {
+                dirPath:url,
+                callback: 'getFolderFilesCallback'
+            })
+            app.once('getFolderFilesCallback', function (event, mess) {
+                alert(mess)
+            })
+        })
+    }
+    
+    
+    // 获取文件路径队列
+    function chooseFiles(callback) {
+        app.send('chooseFiles', {
+            callback: 'chooseFilesCallback'
+        })
+        app.once('chooseFilesCallback', function (event, mess) {
+            if (callback)
+            {
+                console.log(mess)
+                callback(JSON.parse(mess).data)
+            }
+            else
+                alert(mess)
+        })
+    }
+
+    // 创建二维码
+    function createQRcode() {
+        chooseDir(function (url) {
+            app.send('createQRcode', {
+                data: {
+                    string: '你放',
+                    outputDir: url,
+                    fileName: "test.svg",
+                    options: {
+                        type: 'svg',
+                        color: {
+                            dark: '#000000',  // Blue dots
+                            light: '#ffffff00', // Transparent background
+                            scale: 4,
+                            margin: 4
+                        },
+                        errorCorrectionLevel:'Q'
+                    }
+                },
+                callback: 'createQRcodeCallback'
+            })
+            app.once('createQRcodeCallback', function (event, mess) {
+                alert(mess)
+            })
+        })
+    }
+
+
+    // 获取文件夹路径
+    function chooseDir(callback) {
+        app.send('chooseDir', {
+            callback: 'chooseDirCallback'
+        })
+        app.once('chooseDirCallback', function (event, mess) {
+            if (callback)
+            {
+                console.log(mess)
+                callback(JSON.parse(mess).data)
+            }
+            else
+                alert(mess)
+        })
+    }
+
     // 创建空db -- 测试用
     function createUserDb() {
         app.send('createUserDb', {
