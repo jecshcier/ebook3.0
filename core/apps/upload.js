@@ -34,34 +34,33 @@ process.on('message', (m) => {
         url: uploadUrl,
         formData: data.data
     }, function optionalCallback(err, httpResponse, body) {
-        console.log(body)
-        let bodyObj
-        try {
-            bodyObj = JSON.parse(body)
-        } catch (e) {
+        if (err || httpResponse.statusCode !== 200) {
             info.flag = "fail"
-            info.message = "文件上传失败-->网络错误！"
-            process.send(info)
-            process.exit(0)
-        }
-        if (err || httpResponse.statusCode !== 200 || !bodyObj.ok) {
-            console.error('upload failed:', err);
-            if (bodyObj) {
-                info.flag = "fail"
-                info.message = "文件上传失败-->" + bodyObj.message
-                process.send(info)
-                process.exit(0)
-            }
-            info.flag = "fail"
-            info.message = "文件上传失败-->网络错误！"
+            info.message = "文件上传失败-->" + err
             process.send(info)
             process.exit(0)
         } else {
-            info.flag = "success"
-            info.data = bodyObj.data
-            info.message = "文件上传成功"
-            process.send(info)
-            process.exit(0)
+            let bodyObj
+            try {
+                bodyObj = JSON.parse(body)
+            } catch (e) {
+                info.flag = "fail"
+                info.message = "文件上传失败-->" + body
+                process.send(info)
+                process.exit(0)
+            }
+            if(!bodyObj.ok){
+                info.flag = "fail"
+                info.message = "文件上传失败" + body
+                process.send(info)
+                process.exit(0)
+            }else{
+                info.flag = "success"
+                info.data = bodyObj
+                info.message = "文件上传成功"
+                process.send(info)
+                process.exit(0)
+            }
         }
     }).on('drain', (data) => {
         let progress = rUpload.req.connection._bytesDispatched / fileWholeSize;

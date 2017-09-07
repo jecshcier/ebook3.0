@@ -4,7 +4,7 @@ const fs = require('fs-extra')
 const request = require('request')
 const bookUrl = path.resolve(__dirname,'../../app/' + config.bookUrl)
 
-const downloadThread = (num, downloadUrl, path) => {
+const downloadThread = (num, downloadUrl, filePath) => {
     return new Promise((resolve, reject) => {
         request(downloadUrl, {timeout: 30000}, (error, response, body) => {
             if (error) {
@@ -12,13 +12,13 @@ const downloadThread = (num, downloadUrl, path) => {
                 let info = {
                     id: num,
                     url: downloadUrl,
-                    path: path,
+                    path: filePath,
                     error: error
                 }
                 reject(info)
             }
-            resolve(path + "下载完成")
-        }).pipe(fs.createWriteStream(path))
+            resolve(filePath + "下载完成")
+        }).pipe(fs.createWriteStream(filePath))
     })
 }
 
