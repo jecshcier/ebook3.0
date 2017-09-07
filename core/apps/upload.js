@@ -58,7 +58,7 @@ process.on('message', (m) => {
             process.exit(0)
         } else {
             info.flag = "success"
-            info.data = bodyObj.data
+            info.data = bodyObj
             info.message = "文件上传成功"
             process.send(info)
             process.exit(0)
