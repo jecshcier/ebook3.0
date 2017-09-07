@@ -75,9 +75,11 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-    console.log()
     // 此处为了适应mac os的dock
-    if (!win.isVisible()) {
+    if (win.isVisible()) {
+        win.hide()
+    }
+    else {
         win.show()
     }
 })
@@ -152,6 +154,10 @@ function createWindow(option, defaultUrl) {
     // 窗口失去焦点时移除快捷键以免与系统快捷键冲突
 
     mainWindow.on('blur', () => {
+        let win = BrowserWindow.getFocusedWindow();
+        if (win) {
+            return;
+        }
         globalShortcut.unregisterAll();
     });
 
