@@ -1,5 +1,5 @@
 const path = require('path')
-const config = require(path.resolve(__dirname,'../../app/config'));
+const config = require(path.resolve(__dirname, '../../app/config'));
 const fs = require('fs-extra')
 const request = require('request')
 
@@ -42,25 +42,35 @@ const startDownload = (url, newName, dirPath) => {
             clearInterval(progressInt);
         }
         if (!error) {
-            writerStream.end();
             if (newName) {
                 let newFileName = path.resolve(__dirname, dirPath + '/' + newName)
                 try {
                     fs.renameSync(filePath, newFileName)
+                    info.flag = "success"
+                    info.message = "下载成功"
                 }
-                catch (e){
+                catch (e) {
                     console.log(e)
+                    info.flag = "success"
+                    info.message = "下载成功--->文件重命名失败"
                 }
-                info.flag = "success"
-                info.message = "下载成功"
-                process.send(info)
-                process.exit(0)
             } else {
                 info.flag = "success"
                 info.message = "下载成功"
-                process.send(info)
-                process.exit(0)
             }
+            //轮询写入状态,等待文件写入完成
+            let timeInt = setInterval(() => {
+                if (writerStream._writableState.writing) {
+                    console.log("未完成")
+                    return;
+                }
+                else {
+                    console.log('完成')
+                    process.send(info)
+                    clearInterval(timeInt)
+                    process.exit(0)
+                }
+            }, 500)
         } else {
             info.flag = "fail"
             info.message = "网络连接失败"
@@ -75,18 +85,17 @@ const startDownload = (url, newName, dirPath) => {
         progress = (progress * 100).toFixed(2)
     }).on('response', (res) => {
         try {
-            itemName = res.headers['content-disposition'].replace(/attachment;/, '').replace(/filename=/,'').replace(/"/g,'');
+            itemName = res.headers['content-disposition'].replace(/attachment;/, '').replace(/filename=/, '').replace(/"/g, '');
         }
-        catch (e){
+        catch (e) {
             console.log(e)
         }
-        if (!itemName){
+        if (!itemName) {
             let itemName_arr = res.request.uri.pathname.split('/');
             itemName = itemName_arr[itemName_arr.length - 1]
         }
         console.log(itemName)
-        if(!itemName)
-        {
+        if (!itemName) {
             info.flag = "fail"
             info.message = "无法获取文件名"
             info.itemName = itemName
@@ -98,6 +107,9 @@ const startDownload = (url, newName, dirPath) => {
         info.itemName = itemName
         console.log(filePath)
         writerStream = fs.createWriteStream(filePath)
+        writerStream.on('finish', () => {
+            console.error('All writes are now complete.');
+        });
         writerStream.on('error', (err) => {
             info.flag = "fail"
             info.message = "文件写入失败"
@@ -131,6 +143,7 @@ const auto_download = (itemUrl, dirPath, filePath, itemName, itemSize) => {
     fileAutoRename(dirPath, filePath, itemName, 0, (newFilePath) => {
         let writerStream = fs.createWriteStream(newFilePath)
         writerStream.on('error', (err) => {
+            console.log(err)
             info.flag = "fail"
             info.message = "文件写入失败"
             process.send(info)
@@ -147,15 +160,25 @@ const auto_download = (itemUrl, dirPath, filePath, itemName, itemSize) => {
             if (!error) {
                 info.flag = "success"
                 info.message = "文件下载成功"
-                process.send(info)
-                process.exit(0)
+                //轮询写入状态,等待文件写入完成
+                let timeInt = setInterval(() => {
+                    if (writerStream._writableState.writing) {
+                        console.log("未完成")
+                        return;
+                    }
+                    else {
+                        console.log('完成')
+                        process.send(info)
+                        clearInterval(timeInt)
+                        process.exit(0)
+                    }
+                }, 500)
             } else {
                 info.flag = "fail"
                 info.message = "网络连接失败"
                 process.send(info)
                 process.exit(0)
             }
-            writerStream.end();
         }).on('response', (res) => {
             console.log(res.headers['content-disposition'].replace(/attachment; filename=/, ''))
         }).on('data', (data) => {
