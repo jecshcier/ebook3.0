@@ -40,7 +40,7 @@
 <button onclick="createQRcode()">创建二维码</button>
 <button onclick="chooseFiles()">获取文件路径队列</button>
 <button onclick="getFolderFiles()">获取文件夹下载所有文件</button>
-<button onclick="openFile()">打开文件</button>
+<button onclick="openFile('93d52a82cc9d22dd664fd3911c433e0d (1).png')">打开文件</button>
 <button onclick="max()">最大化</button>
 <button onclick="min()">最小化</button>
 <button onclick="exitApp()">关闭</button>
@@ -74,24 +74,21 @@
 <script type="text/javascript">
     //打开文件
     function openFile(fileUrl) {
-        chooseFiles(function(url_Arr){
-            alert(url_Arr[0])
-            app.send('openFile', {
-                fileUrl:url_Arr[0],
-                callback: 'openFileCallback'
-            })
-            app.once('openFileCallback', function (event, mess) {
-                alert(mess)
-            })
+        app.send('openFile', {
+            fileUrl: fileUrl,
+            callback: 'openFileCallback'
+        })
+        app.once('openFileCallback', function (event, mess) {
+            alert(mess)
         })
     }
-    
-    
+
+
     // 获取文件夹下所有文件
     function getFolderFiles() {
-        chooseDir(function(url){
+        chooseDir(function (url) {
             app.send('getFolderFiles', {
-                dirPath:url,
+                dirPath: url,
                 callback: 'getFolderFilesCallback'
             })
             app.once('getFolderFilesCallback', function (event, mess) {
@@ -99,16 +96,15 @@
             })
         })
     }
-    
-    
+
+
     // 获取文件路径队列
     function chooseFiles(callback) {
         app.send('chooseFiles', {
             callback: 'chooseFilesCallback'
         })
         app.once('chooseFilesCallback', function (event, mess) {
-            if (callback)
-            {
+            if (callback) {
                 console.log(mess)
                 callback(JSON.parse(mess).data)
             }
@@ -133,7 +129,7 @@
                             scale: 4,
                             margin: 4
                         },
-                        errorCorrectionLevel:'Q'
+                        errorCorrectionLevel: 'Q'
                     }
                 },
                 callback: 'createQRcodeCallback'
@@ -151,8 +147,7 @@
             callback: 'chooseDirCallback'
         })
         app.once('chooseDirCallback', function (event, mess) {
-            if (callback)
-            {
+            if (callback) {
                 console.log(mess)
                 callback(JSON.parse(mess).data)
             }

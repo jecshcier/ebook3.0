@@ -1013,6 +1013,7 @@ const appEvent = {
                 data: null
             }
             let url = data.fileUrl
+            url = path.join(downloadPath,url)
             fs.pathExists(url).then((exists) => {
                 "use strict";
                 if(!exists){
