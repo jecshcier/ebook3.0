@@ -1024,7 +1024,8 @@ const appEvent = {
             })
             let p;
             if (process.platform !== "darwin") {
-                p = child.execFile(url, [], (error, stdout, stderr) => {
+            	url = '"' + url + '"'
+                p = child.exec(url, (error, stdout, stderr) => {
                     if (error) {
                         console.log(error)
                         info.flag = false
