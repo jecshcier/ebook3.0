@@ -1034,7 +1034,7 @@ const appEvent = {
                         event.sender.send(data.callback, JSON.stringify(info));
                     }
                     else {
-                        p.exit(0)
+                        process.kill(p.pid)
                     }
                     console.log(stdout);
                 });
