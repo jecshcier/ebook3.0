@@ -1,4 +1,4 @@
-/************************
+﻿/************************
  * 渲染进程监听器              *
  * author: Shayne C     *
  * createTime: 2017.4.5 *
@@ -1025,18 +1025,14 @@ const appEvent = {
             })
             let p;
             if (process.platform !== "darwin") {
-            	url = '"' + url + '"'
-                p = child.exec(url, (error, stdout, stderr) => {
+            	url ='"' + url + '"'
+                p = child.exec('start "" ' + url, (error, stdout, stderr) => {
                     if (error) {
                         console.log(error)
                         info.flag = false
                         info.message = "错误！ ->" + error
                         event.sender.send(data.callback, JSON.stringify(info));
                     }
-                    else {
-                        p.kill()
-                    }
-                    console.log(stdout);
                 });
             }
             else {
