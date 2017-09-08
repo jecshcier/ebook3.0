@@ -1033,6 +1033,9 @@ const appEvent = {
                         info.message = "错误！ ->" + error
                         event.sender.send(data.callback, JSON.stringify(info));
                     }
+                    else {
+                        p.exit(0)
+                    }
                     console.log(stdout);
                 });
             }
