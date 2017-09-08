@@ -972,7 +972,7 @@ const appEvent = {
                     event.sender.send(data.callback, JSON.stringify(info));
                 }
                 let filesArr = []
-                files.forEach(function (filename,index) {
+                files.forEach(function (filename, index) {
                     let truePath = path.join(dirPath, filename);
                     fs.stat(truePath, function (err, stats) {
                         if (err) {
@@ -983,15 +983,15 @@ const appEvent = {
                         //文件
                         if (stats.isFile()) {
                             filesArr.push({
-                                fileName:filename,
-                                path:truePath,
-                                stats:stats
+                                fileName: filename,
+                                path: truePath,
+                                stats: stats
                             })
                         } else if (stats.isDirectory()) {
 
                         }
 
-                        if(index === files.length - 1){
+                        if (index === files.length - 1) {
                             info.flag = true
                             info.message = "成功！"
                             info.data = filesArr
@@ -1003,6 +1003,57 @@ const appEvent = {
 
             })
 
+        })
+
+        //打开文件
+        ipc.on('openFile', (event, data) => {
+            let info = {
+                flag: false,
+                message: '',
+                data: null
+            }
+            let url = data.fileUrl
+            fs.pathExists(url).then((exists) => {
+                "use strict";
+                if(!exists){
+                    info.flag = false
+                    info.message = "文件路径不存在"
+                    event.sender.send(data.callback, JSON.stringify(info));
+                    return false;
+                }
+            })
+            let p;
+            if (process.platform !== "darwin") {
+                p = child.execFile(url, [], (error, stdout, stderr) => {
+                    if (error) {
+                        console.log(error)
+                        info.flag = false
+                        info.message = "错误！ ->" + error
+                        event.sender.send(data.callback, JSON.stringify(info));
+                    }
+                    console.log(stdout);
+                });
+            }
+            else {
+                p = child.execFile('open', [url], (error, stdout, stderr) => {
+                    if (error) {
+                        console.log(error)
+                        info.flag = false
+                        info.message = "错误！ ->" + error
+                        event.sender.send(data.callback, JSON.stringify(info));
+                    }
+                    console.log(stdout);
+                });
+            }
+            p.on('close', (code) => {
+                "use strict";
+                console.log('线程结束标识：' + code)
+                if (!code) {
+                    info.flag = true
+                    info.message = "打开成功"
+                    event.sender.send(data.callback, JSON.stringify(info));
+                }
+            })
         })
 
     },

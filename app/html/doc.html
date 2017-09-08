@@ -40,6 +40,7 @@
 <button onclick="createQRcode()">创建二维码</button>
 <button onclick="chooseFiles()">获取文件路径队列</button>
 <button onclick="getFolderFiles()">获取文件夹下载所有文件</button>
+<button onclick="openFile()">打开文件</button>
 <button onclick="max()">最大化</button>
 <button onclick="min()">最小化</button>
 <button onclick="exitApp()">关闭</button>
@@ -71,6 +72,21 @@
 </body>
 <script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
+    //打开文件
+    function openFile(fileUrl) {
+        chooseFiles(function(url_Arr){
+            alert(url_Arr[0])
+            app.send('openFile', {
+                fileUrl:url_Arr[0],
+                callback: 'openFileCallback'
+            })
+            app.once('openFileCallback', function (event, mess) {
+                alert(mess)
+            })
+        })
+    }
+    
+    
     // 获取文件夹下所有文件
     function getFolderFiles() {
         chooseDir(function(url){
